@@ -1,0 +1,71 @@
+# Day 2 - Prompt Engineering
+
+## Objective
+
+To understand the difference between a Lazy Prompt and an Engineered Prompt and analyze how prompt quality affects AI-generated outputs.
+
+## Lazy Prompt
+
+### Prompt Used
+
+Create an image explaining Prompt Engineering.
+
+### Observation
+
+* Output was basic and generic.
+* Limited explanation provided.
+* Few examples included.
+* Simpler visual structure.
+
+## Engineered Prompt
+
+### Prompt Used
+
+Create a professional infographic explaining Prompt Engineering.
+
+Requirements:
+
+* Title: What is Prompt Engineering?
+* Define Prompt Engineering in simple terms.
+* Explain why prompts matter in AI.
+* Include a workflow diagram.
+* Show weak and strong prompt examples.
+* Highlight key benefits.
+* Use a modern infographic style.
+
+### Observation
+
+* Better structured content.
+* More detailed explanation.
+* Included examples and workflow.
+* More visually appealing.
+* Easier to understand.
+
+## Comparison
+
+| Aspect        | Lazy Prompt | Engineered Prompt |
+| ------------- | ----------- | ----------------- |
+| Clarity       | Low         | High              |
+| Structure     | Basic       | Organized         |
+| Examples      | Few         | Included          |
+| Detail Level  | Low         | High              |
+| Visual Design | Simple      | Professional      |
+
+## Key Learnings
+
+1. Specific prompts generate better outputs.
+2. Context improves AI understanding.
+3. Detailed instructions reduce ambiguity.
+4. Examples improve output quality.
+5. Prompt Engineering helps achieve more accurate and relevant responses.
+
+## Tools Used
+
+* Claude AI
+* MetaPrompt Extension
+* GitHub
+* VS Code
+
+## Conclusion
+
+The experiment demonstrated that engineered prompts significantly improve output quality by providing context, structure, examples, and formatting requirements.
