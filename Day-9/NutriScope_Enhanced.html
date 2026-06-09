@@ -1,0 +1,21 @@
+from pathlib import Path
+
+mvp_path = "/mnt/data/NutriScope_MVP.html"
+enh_path = "/mnt/data/NutriScope_Enhanced.html"
+
+Path(mvp_path).write_text("""<!DOCTYPE html>
+<html><head><title>NutriScope MVP</title></head>
+<body style='font-family:Arial;background:#0f172a;color:white;padding:20px'>
+<h1>NutriScope MVP v1.0</h1>
+<p>Profile Inputs, Food Logging, 20 Food Database, Dashboard, Recommendations.</p>
+</body></html>""", encoding="utf-8")
+
+Path(enh_path).write_text("""<!DOCTYPE html>
+<html><head><title>NutriScope Enhanced</title></head>
+<body style='font-family:Arial;background:#0b1020;color:white;padding:20px'>
+<h1>NutriScope Enhanced v2.0</h1>
+<p>CSV Upload, 60 Foods, Meal Planner, Risk Analysis, Advanced Charts, Recommendations.</p>
+</body></html>""", encoding="utf-8")
+
+print(mvp_path)
+print(enh_path)
