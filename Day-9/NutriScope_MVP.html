@@ -1,0 +1,52 @@
+from pathlib import Path
+
+mvp = """<!DOCTYPE html>
+<html><head><title>NutriScope MVP</title>
+<style>body{font-family:Arial;background:#0f172a;color:white;padding:30px} .card{background:#1e293b;padding:20px;border-radius:12px;margin:10px}</style>
+</head>
+<body>
+<h1>NutriScope MVP v1.0</h1>
+<div class="card">
+<h2>Profile</h2>
+<p>Age, Gender, Height, Weight, Activity Level, Dietary Preference</p>
+</div>
+<div class="card">
+<h2>Food Logging</h2>
+<p>20 Common Foods, Calories, Protein, Carbs, Fat Tracking</p>
+</div>
+<div class="card">
+<h2>Dashboard</h2>
+<p>Energy Summary, Micronutrients, Recommendations</p>
+</div>
+</body></html>"""
+
+enhanced = """<!DOCTYPE html>
+<html><head><title>NutriScope Enhanced</title>
+<style>body{font-family:Arial;background:#0b1020;color:white;padding:30px} .card{background:#1b2440;padding:20px;border-radius:12px;margin:10px}</style>
+</head>
+<body>
+<h1>NutriScope Enhanced v2.0</h1>
+<div class="card">
+<h2>Advanced Features</h2>
+<ul>
+<li>CSV Upload</li>
+<li>60 Food Database Entries</li>
+<li>Additional Micronutrients</li>
+<li>2-Day Meal Planner</li>
+<li>Risk Analysis</li>
+<li>Advanced Recommendations</li>
+</ul>
+</div>
+<div class="card">
+<h2>Analytics</h2>
+<p>Enhanced Charts, Deficiency Analysis, Nutrition Sources</p>
+</div>
+</body></html>"""
+
+mvp_path = "/mnt/data/NutriScope_MVP.html"
+enh_path = "/mnt/data/NutriScope_Enhanced.html"
+
+Path(mvp_path).write_text(mvp, encoding="utf-8")
+Path(enh_path).write_text(enhanced, encoding="utf-8")
+
+print({"mvp": mvp_path, "enhanced": enh_path})
