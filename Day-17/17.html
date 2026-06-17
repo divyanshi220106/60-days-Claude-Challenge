@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Day 17 - Vehicle Cost Analysis Dashboard</title>
+
+<style>
+:root{
+ --bg:#0a0f1e;
+ --glass:rgba(255,255,255,.08);
+ --blue:#3b82f6;
+ --amber:#f59e0b;
+ --green:#22c55e;
+ --purple:#a855f7;
+ --gray:#94a3b8;
+}
+
+*{
+ margin:0;
+ padding:0;
+ box-sizing:border-box;
+ font-family:Inter,Segoe UI,sans-serif;
+}
+
+body{
+ background:linear-gradient(135deg,#050814,#0a0f1e);
+ color:white;
+ min-height:100vh;
+ padding:20px;
+}
+
+.dashboard{
+ max-width:1400px;
+ margin:auto;
+}
+
+.header{
+ background:var(--glass);
+ backdrop-filter:blur(15px);
+ border-radius:20px;
+ padding:20px;
+ border:1px solid rgba(255,255,255,.1);
+ margin-bottom:20px;
+}
+
+.header h1{
+ color:#60a5fa;
+}
+
+.kpis{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+ gap:15px;
+ margin-bottom:20px;
+}
+
+.card{
+ background:var(--glass);
+ border-radius:18px;
+ padding:20px;
+ backdrop-filter:blur(10px);
+ border:1px solid rgba(255,255,255,.08);
+ transition:.3s;
+}
+
+.card:hover{
+ transform:translateY(-5px);
+}
+
+.blue{box-shadow:0 0 20px rgba(59,130,246,.3);}
+.amber{box-shadow:0 0 20px rgba(245,158,11,.3);}
+.green{box-shadow:0 0 20px rgba(34,197,94,.3);}
+.purple{box-shadow:0 0 20px rgba(168,85,247,.3);}
+.red{box-shadow:0 0 20px rgba(239,68,68,.3);}
+
+.metric{
+ font-size:2rem;
+ margin-top:10px;
+ font-weight:700;
+}
+
+.charts{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:20px;
+ margin-bottom:20px;
+}
+
+.chart{
+ background:var(--glass);
+ border-radius:20px;
+ padding:20px;
+}
+
+.bar-container{
+ display:flex;
+ align-items:flex-end;
+ height:250px;
+ gap:20px;
+ padding-top:20px;
+}
+
+.bar{
+ width:60px;
+ border-radius:10px 10px 0 0;
+}
+
+.fuel-cards{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+ gap:15px;
+}
+
+.fuel{
+ background:var(--glass);
+ border-radius:18px;
+ padding:20px;
+}
+
+.petrol{border:2px solid var(--blue);}
+.e85{border:2px solid var(--amber);}
+.diesel{border:2px solid var(--gray);}
+.cng{border:2px solid var(--green);}
+.ev{border:2px solid var(--purple);}
+
+ul{
+ margin-left:18px;
+ margin-top:10px;
+}
+
+@media(max-width:900px){
+ .charts{
+  grid-template-columns:1fr;
+ }
+}
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+
+<div class="header">
+<h1>🚗 Vehicle Cost Analysis Dashboard</h1>
+<p>Fuel Efficiency • Maintenance • CO₂ Impact • E85 Economics</p>
+</div>
+
+<div class="kpis">
+
+<div class="card blue">
+<h3>Your Cost / KM</h3>
+<div class="metric">₹6.13</div>
+</div>
+
+<div class="card amber">
+<h3>E85 Cost / KM</h3>
+<div class="metric">₹4.27</div>
+</div>
+
+<div class="card purple">
+<h3>E85 Premium</h3>
+<div class="metric">-30.31%</div>
+</div>
+
+<div class="card green">
+<h3>Break-even Price</h3>
+<div class="metric">₹105.30</div>
+</div>
+
+<div class="card red">
+<h3>Monthly Cost</h3>
+<div class="metric">₹6,126</div>
+</div>
+
+</div>
+
+<div class="charts">
+
+<div class="chart">
+<h2>Cost Per KM Comparison</h2>
+
+<div class="bar-container">
+
+<div>
+<div class="bar" style="height:180px;background:#3b82f6;"></div>
+<p>Petrol</p>
+</div>
+
+<div>
+<div class="bar" style="height:140px;background:#f59e0b;"></div>
+<p>E85</p>
+</div>
+
+<div>
+<div class="bar" style="height:160px;background:#94a3b8;"></div>
+<p>Diesel</p>
+</div>
+
+<div>
+<div class="bar" style="height:100px;background:#22c55e;"></div>
+<p>CNG</p>
+</div>
+
+<div>
+<div class="bar" style="height:70px;background:#a855f7;"></div>
+<p>EV</p>
+</div>
+
+</div>
+
+</div>
+
+<div class="chart">
+<h2>E85 Score</h2>
+
+<svg width="100%" height="260" viewBox="0 0 300 300">
+<circle cx="150" cy="150" r="100"
+stroke="#222"
+stroke-width="25"
+fill="none"/>
+
+<circle cx="150" cy="150" r="100"
+stroke="#f59e0b"
+stroke-width="25"
+fill="none"
+stroke-dasharray="628"
+stroke-dashoffset="157"/>
+
+<text x="150" y="160"
+fill="white"
+font-size="40"
+text-anchor="middle">7.5</text>
+</svg>
+
+</div>
+
+</div>
+
+<h2 style="margin-bottom:15px">Fuel Comparison Snapshot</h2>
+
+<div class="fuel-cards">
+
+<div class="fuel petrol">
+<h3>Petrol</h3>
+<ul>
+<li>High Availability</li>
+<li>Good Performance</li>
+<li>Higher Running Cost</li>
+</ul>
+</div>
+
+<div class="fuel e85">
+<h3>E85</h3>
+<ul>
+<li>Lower Fuel Cost</li>
+<li>Lower Emissions</li>
+<li>Mileage Trade-off</li>
+</ul>
+</div>
+
+<div class="fuel diesel">
+<h3>Diesel</h3>
+<ul>
+<li>High Mileage</li>
+<li>Long Distance</li>
+<li>Maintenance Cost</li>
+</ul>
+</div>
+
+<div class="fuel cng">
+<h3>CNG</h3>
+<ul>
+<li>Economical</li>
+<li>Low Emissions</li>
+<li>Limited Availability</li>
+</ul>
+</div>
+
+<div class="fuel ev">
+<h3>EV</h3>
+<ul>
+<li>Zero Emission</li>
+<li>Lowest Running Cost</li>
+<li>Charging Time</li>
+</ul>
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>
