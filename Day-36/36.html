@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cognitive Pattern Explorer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg1:#eef2fb;
+  --bg2:#f7f3ee;
+  --panel:#ffffff;
+  --ink:#2b2f3a;
+  --muted:#6b7280;
+  --line:#e3e6ee;
+  --accent:#7c93ff;
+  --accent-2:#9fd8cb;
+  --accent-3:#f3b988;
+  --focus:#4c5fd6;
+  --radius:18px;
+  --shadow:0 12px 40px rgba(43,47,58,0.08);
+  --display:'Fraunces', serif;
+  --body:'Inter', sans-serif;
+  --speed:.5s;
+}
+body.mode-stress{
+  --bg1:#fbeee9;
+  --bg2:#fdf5ec;
+  --accent:#e8875a;
+  --accent-2:#e0a5a0;
+  --accent-3:#f2c46d;
+  --focus:#c4562f;
+  --speed:.25s;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  min-height:100vh;
+  font-family:var(--body);
+  color:var(--ink);
+  background:linear-gradient(135deg, var(--bg1), var(--bg2));
+  transition:background var(--speed) ease;
+  overflow-x:hidden;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important; scroll-behavior:auto !important;}
+}
+h1,h2,h3{font-family:var(--display); font-weight:600; margin:0 0 10px;}
+.hidden{display:none !important;}
+button{font-family:var(--body);}
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible{
+  outline:3px solid var(--focus); outline-offset:3px; border-radius:8px;
+}
+
+/* ambient floating blobs */
+.ambient{position:fixed; inset:0; overflow:hidden; z-index:0; pointer-events:none;}
+.blob{
+  position:absolute; border-radius:50%; filter:blur(60px); opacity:.35;
+  animation:drift 18s ease-in-out infinite;
+}
+.blob.b1{width:340px; height:340px; background:var(--accent); top:-80px; left:-80px;}
+.blob.b2{width:280px; height:280px; background:var(--accent-2); bottom:-60px; right:-40px; animation-delay:-6s;}
+.blob.b3{width:220px; height:220px; background:var(--accent-3); top:40%; left:60%; animation-delay:-11s;}
+@keyframes drift{
+  0%,100%{transform:translate(0,0) scale(1);}
+  50%{transform:translate(30px,-25px) scale(1.08);}
+}
+
+.wrap{position:relative; z-index:1; max-width:920px; margin:0 auto; padding:26px 20px 70px;}
+
+/* top progress */
+.topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; gap:14px; flex-wrap:wrap;}
+.brand{font-family:var(--display); font-size:19px;}
+.mode-tag{
+  font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+  border:1px solid var(--line); padding:5px 12px; border-radius:999px; background:var(--panel);
+}
+.progress-outer{height:8px; border-radius:8px; background:rgba(0,0,0,0.06); overflow:hidden; margin-bottom:30px;}
+.progress-inner{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); transition:width .6s ease;}
+.step-dots{display:flex; gap:8px; justify-content:center; margin-bottom:6px;}
+.step-dots span{width:8px; height:8px; border-radius:50%; background:var(--line); transition:background .3s ease, transform .3s ease;}
+.step-dots span.active{background:var(--accent); transform:scale(1.3);}
+
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:32px; animation:fadeUp .5s ease;
+}
+@keyframes fadeUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+
+.subtle{color:var(--muted); font-size:14.5px; line-height:1.6;}
+
+/* start screen */
+.mode-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:22px 0;}
+@media(max-width:600px){.mode-grid{grid-template-columns:1fr;}}
+.mode-card{
+  border:2px solid var(--line); border-radius:14px; padding:20px; cursor:pointer; text-align:left;
+  background:var(--bg2); transition:all .2s ease;
+}
+.mode-card:hover{border-color:var(--accent); transform:translateY(-3px);}
+.mode-card.selected{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,147,255,0.18);}
+.mode-card h3{font-size:16px; margin-bottom:6px;}
+.mode-card p{margin:0; font-size:13px; color:var(--muted);}
+
+.btn{
+  font-family:var(--body); font-weight:600; font-size:14.5px; color:#fff;
+  background:linear-gradient(135deg, var(--accent), var(--accent-2));
+  border:none; padding:13px 26px; border-radius:12px; cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease; box-shadow:0 8px 22px rgba(124,147,255,0.28);
+}
+.btn:hover{transform:translateY(-2px);}
+.btn:disabled{opacity:.4; cursor:not-allowed; transform:none;}
+.btn-ghost{
+  background:transparent; color:var(--ink); border:1px solid var(--line); box-shadow:none; font-weight:600;
+  padding:12px 22px; border-radius:12px; cursor:pointer;
+}
+.btn-ghost:hover{border-color:var(--accent); color:var(--accent);}
+.actions{display:flex; justify-content:space-between; margin-top:28px; gap:12px; flex-wrap:wrap;}
+
+/* chapter 1 scenarios */
+.scenario-box{margin-bottom:8px;}
+.scenario-text{font-size:16.5px; margin-bottom:18px; line-height:1.6;}
+.option-list{display:flex; flex-direction:column; gap:10px;}
+.option{
+  text-align:left; padding:14px 16px; border:1.5px solid var(--line); border-radius:12px; background:var(--bg2);
+  cursor:pointer; font-size:14.5px; transition:all .15s ease; color:var(--ink);
+}
+.option:hover{border-color:var(--accent); background:#fff;}
+.option.chosen{border-color:var(--accent); background:rgba(124,147,255,0.1); font-weight:600;}
+
+/* draggable rank list (chapter 2) */
+.rank-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+.rank-item{
+  display:flex; align-items:center; gap:12px; background:var(--bg2); border:1.5px solid var(--line);
+  border-radius:12px; padding:12px 14px; cursor:grab; user-select:none; touch-action:none;
+  transition:border-color .15s ease, box-shadow .15s ease, transform .12s ease;
+}
+.rank-item.dragging{opacity:.4;}
+.rank-item.drag-over{border-color:var(--accent); box-shadow:0 0 0 2px rgba(124,147,255,0.25);}
+.rank-item:focus-visible{border-color:var(--accent);}
+.rank-num{
+  font-family:var(--display); font-weight:600; font-size:15px; color:var(--accent);
+  width:26px; height:26px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; border:1px solid var(--line);
+}
+.rank-text{flex:1; font-size:14px;}
+.rank-controls{display:flex; gap:4px;}
+.mini-btn{
+  border:1px solid var(--line); background:#fff; border-radius:7px; width:26px; height:26px; cursor:pointer;
+  font-size:12px; display:flex; align-items:center; justify-content:center; color:var(--muted);
+}
+.mini-btn:hover{border-color:var(--accent); color:var(--accent);}
+.drag-handle{color:var(--muted); font-size:14px; cursor:grab;}
+
+/* journal */
+.top-tendency{
+  text-align:center; padding:20px 0 10px;
+}
+.top-tendency .label{font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);}
+.top-tendency .name{font-family:var(--display); font-size:30px; margin:6px 0;}
+.bar-row{display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+.bar-label{width:190px; font-size:13px; color:var(--muted); flex-shrink:0;}
+.bar-track{flex:1; height:12px; border-radius:8px; background:rgba(0,0,0,0.06); overflow:hidden;}
+.bar-fill{height:100%; width:0%; border-radius:8px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); transition:width 1s ease;}
+.bar-pct{width:42px; text-align:right; font-size:13px; font-weight:600;}
+.insight-block{
+  background:var(--bg2); border-left:3px solid var(--accent-3); border-radius:10px; padding:16px 18px;
+  font-size:14.5px; line-height:1.65; margin:20px 0;
+}
+.chapter-compare{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:18px 0;}
+@media(max-width:640px){.chapter-compare{grid-template-columns:1fr;}}
+.compare-card{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px; text-align:center;}
+.compare-card .ch{font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:6px;}
+.compare-card .val{font-family:var(--display); font-size:15px;}
+.disclaimer{
+  font-size:12px; color:var(--muted); border-top:1px dashed var(--line); padding-top:14px; margin-top:22px; line-height:1.6;
+}
+</style>
+</head>
+<body>
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">Cognitive Pattern Explorer</div>
+    <div class="mode-tag" id="modeTag">Mode: Not selected</div>
+  </div>
+  <div class="progress-outer"><div class="progress-inner" id="progressInner"></div></div>
+  <div class="step-dots" id="stepDots">
+    <span data-step="0"></span><span data-step="1"></span><span data-step="2"></span><span data-step="3"></span><span data-step="4"></span>
+  </div>
+
+  <!-- SCREEN 0: START -->
+  <div class="card" id="screenStart">
+    <h1>Welcome to the Cognitive Pattern Explorer</h1>
+    <p class="subtle">A calm, exploratory look at how you tend to think — through everyday scenarios, quiet choices, and a bit of arranging. This is reflective, not a test, and nothing here diagnoses or clinically assesses anything. Think of it as a mirror, not a verdict.</p>
+
+    <h3 style="margin-top:26px; font-size:15px;">Choose how you'd like to explore today</h3>
+    <div class="mode-grid">
+      <div class="mode-card" data-mode="calm" tabindex="0" role="button" aria-pressed="false">
+        <h3>🌿 Calm Mode</h3>
+        <p>Slower pacing, soft colors, no time pressure. Good for unhurried reflection.</p>
+      </div>
+      <div class="mode-card" data-mode="stress" tabindex="0" role="button" aria-pressed="false">
+        <h3>🔥 Stress Mode</h3>
+        <p>Slightly quicker pacing and warmer tones, to notice how your choices shift under gentle pressure.</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div></div>
+      <button class="btn" id="startBtn" disabled>Begin Exploration →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 1: CHAPTER 1 -->
+  <div class="card hidden" id="screenCh1">
+    <h2>Chapter 1 — Discover Your Thinking Style</h2>
+    <p class="subtle">Respond to a few everyday moments. There are no right answers — just notice what feels most natural.</p>
+    <div class="scenario-box" id="ch1Box"></div>
+    <div class="actions">
+      <button class="btn-ghost" id="ch1Back">← Back</button>
+      <button class="btn" id="ch1Next" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: CHAPTER 2 -->
+  <div class="card hidden" id="screenCh2">
+    <h2>Chapter 2 — Choose Your Priorities</h2>
+    <p class="subtle">Drag these to reorder — top of the list is closest to how you naturally operate, bottom is least like you. Use the ↑↓ buttons or arrow keys if you prefer not to drag.</p>
+    <ul class="rank-list" id="ch2List"></ul>
+    <div class="actions">
+      <button class="btn-ghost" id="ch2Back">← Back</button>
+      <button class="btn" id="ch2Next">Continue →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: CHAPTER 3 -->
+  <div class="card hidden" id="screenCh3">
+    <h2>Chapter 3 — Map Your Thinking</h2>
+    <p class="subtle">Arrange these steps into the order you'd most naturally move through them when facing a decision. Earliest at the top.</p>
+    <ul class="rank-list" id="ch3List"></ul>
+    <div class="actions">
+      <button class="btn-ghost" id="ch3Back">← Back</button>
+      <button class="btn" id="ch3Next">See My Reflection Journal →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: JOURNAL -->
+  <div class="card hidden" id="screenJournal">
+    <h2>Your Reflection Journal</h2>
+    <div class="top-tendency">
+      <div class="label">Your leading tendency today</div>
+      <div class="name" id="topTendencyName">—</div>
+    </div>
+
+    <div id="barChart"></div>
+
+    <div class="insight-block" id="insightText"></div>
+
+    <h3 style="font-size:15px;">Across the chapters</h3>
+    <p class="subtle" style="margin-top:-4px;">A quick look at which tendency stood out in each part of the exploration.</p>
+    <div class="chapter-compare" id="chapterCompare"></div>
+
+    <div class="actions">
+      <button class="btn-ghost" id="replayBtn">🔁 Replay in Opposite Mode</button>
+      <button class="btn" id="restartBtn">Start Over</button>
+    </div>
+
+    <div class="disclaimer">
+      This experience is educational and reflective only. It does not diagnose, assess, or label any mental health condition. Thinking tendencies are fluid and can shift day to day, by context, and by mood — treat these results as a gentle prompt for curiosity, not a fixed identity.
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   TENDENCY DEFINITIONS
+   ========================================================= */
+const TENDENCIES = {
+  analytical: { name:"Analytical Thinker", blurb:"You often break situations into parts, look for evidence, and weigh details before deciding. This suggests a preference for logic and structure when making sense of things." },
+  emotional: { name:"Emotional Intuitive", blurb:"You often lead with how something feels before you explain why. This suggests you trust your gut and read emotional context quickly, even before the details are clear." },
+  overthinking: { name:"Overthinking Loop Style", blurb:"You often revisit a decision from multiple angles, sometimes circling back even after choosing. This suggests a careful, thorough style that occasionally lingers longer than it needs to." },
+  action: { name:"Action-First Decision Maker", blurb:"You often move toward doing something rather than deliberating extensively. This suggests confidence in adjusting course along the way rather than needing full certainty up front." },
+  balanced: { name:"Balanced Reflective Thinker", blurb:"You often pause just long enough to weigh a few angles, then settle comfortably on a direction. This suggests an even-keeled style that blends reflection with momentum." }
+};
+const ORDER = ["analytical","emotional","overthinking","action","balanced"];
+
+/* =========================================================
+   CHAPTER 1 — SCENARIOS
+   ========================================================= */
+const CH1_SCENARIOS = [
+  {
+    text:"Your team's plan just changed at the last minute. What's your first instinct?",
+    options:[
+      {label:"Map out exactly what changed and what it affects.", key:"analytical"},
+      {label:"Notice how the room feels before saying anything.", key:"emotional"},
+      {label:"Replay the last meeting in your head, wondering what you missed.", key:"overthinking"},
+      {label:"Start adjusting your part of the plan right away.", key:"action"},
+      {label:"Take a breath, ask one clarifying question, then proceed.", key:"balanced"}
+    ]
+  },
+  {
+    text:"A friend sends a short, ambiguous text reply. How do you respond internally?",
+    options:[
+      {label:"Consider a few likely reasons based on context.", key:"analytical"},
+      {label:"Feel a small emotional reaction before thinking it through.", key:"emotional"},
+      {label:"Reread the message several times, imagining different meanings.", key:"overthinking"},
+      {label:"Reply back quickly and move on with your day.", key:"action"},
+      {label:"Assume good intent and reply naturally.", key:"balanced"}
+    ]
+  },
+  {
+    text:"You're choosing between two similar job offers. What matters most in the moment?",
+    options:[
+      {label:"Comparing details side-by-side — pay, growth, structure.", key:"analytical"},
+      {label:"Which one simply feels right.", key:"emotional"},
+      {label:"Making a pros/cons list, then a second one, then a third.", key:"overthinking"},
+      {label:"Picking the one that lets you start soonest.", key:"action"},
+      {label:"Weighing your top two priorities, then deciding calmly.", key:"balanced"}
+    ]
+  },
+  {
+    text:"A project you're leading hits an unexpected obstacle. What happens first?",
+    options:[
+      {label:"You isolate the root cause before reacting.", key:"analytical"},
+      {label:"You sense frustration or worry rising in the team first.", key:"emotional"},
+      {label:"You keep re-examining whether it was preventable.", key:"overthinking"},
+      {label:"You try a fix immediately to keep momentum.", key:"action"},
+      {label:"You assess quickly, then choose a reasonable next step.", key:"balanced"}
+    ]
+  },
+  {
+    text:"You're about to make a purchase you've been considering for a while. What's true for you?",
+    options:[
+      {label:"You've researched specs and comparisons thoroughly.", key:"analytical"},
+      {label:"You know it's right because of how it makes you feel.", key:"emotional"},
+      {label:"You've gone back and forth on it many times already.", key:"overthinking"},
+      {label:"You decide in the moment and buy it.", key:"action"},
+      {label:"You've thought it over reasonably and feel settled.", key:"balanced"}
+    ]
+  },
+  {
+    text:"Someone gives you feedback you didn't expect. What's your first internal move?",
+    options:[
+      {label:"You break the feedback into specific, checkable points.", key:"analytical"},
+      {label:"You notice the emotional sting or relief before the content.", key:"emotional"},
+      {label:"You replay the conversation repeatedly afterward.", key:"overthinking"},
+      {label:"You decide what to change and start right away.", key:"action"},
+      {label:"You sit with it briefly, then respond thoughtfully.", key:"balanced"}
+    ]
+  }
+];
+
+/* =========================================================
+   CHAPTER 2 — PRIORITY CARDS
+   ========================================================= */
+const CH2_CARDS = [
+  { key:"analytical", text:"Getting the facts right before anything else" },
+  { key:"emotional", text:"Understanding how people feel in the situation" },
+  { key:"overthinking", text:"Considering every possible angle, even the unlikely ones" },
+  { key:"action", text:"Getting something moving, even imperfectly" },
+  { key:"balanced", text:"Weighing the key options calmly, then choosing" }
+];
+
+/* =========================================================
+   CHAPTER 3 — TIMELINE STEPS
+   ========================================================= */
+const CH3_STEPS = [
+  { key:"emotional", text:"Notice how the situation feels before anything else" },
+  { key:"analytical", text:"Break the situation into clear, logical parts" },
+  { key:"overthinking", text:"Circle back and re-check the reasoning again" },
+  { key:"balanced", text:"Step back and weigh the realistic options" },
+  { key:"action", text:"Just start doing something and adjust as you go" }
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let state = {
+  mode: null,
+  currentStep: 0, // 0 start, 1 ch1, 2 ch2, 3 ch3, 4 journal
+  ch1Index: 0,
+  ch1Choices: [], // array of key per scenario
+  ch2Order: [],
+  ch3Order: [],
+  scores: { analytical:0, emotional:0, overthinking:0, action:0, balanced:0 }
+};
+
+function resetState(keepMode){
+  const mode = keepMode ? state.mode : null;
+  state = {
+    mode: mode,
+    currentStep: 0,
+    ch1Index: 0,
+    ch1Choices: [],
+    ch2Order: [],
+    ch3Order: [],
+    scores: { analytical:0, emotional:0, overthinking:0, action:0, balanced:0 }
+  };
+}
+
+/* =========================================================
+   PROGRESS UI
+   ========================================================= */
+function updateProgress(){
+  const pct = (state.currentStep/4)*100;
+  document.getElementById('progressInner').style.width = pct + '%';
+  document.querySelectorAll('#stepDots span').forEach(dot=>{
+    dot.classList.toggle('active', Number(dot.dataset.step) <= state.currentStep);
+  });
+}
+
+function showScreen(step){
+  const screens = ['screenStart','screenCh1','screenCh2','screenCh3','screenJournal'];
+  screens.forEach((id,i)=>{
+    document.getElementById(id).classList.toggle('hidden', i !== step);
+  });
+  state.currentStep = step;
+  updateProgress();
+  window.scrollTo({top:0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+}
+
+/* =========================================================
+   MODE SELECTION
+   ========================================================= */
+document.querySelectorAll('.mode-card').forEach(card=>{
+  function selectMode(){
+    document.querySelectorAll('.mode-card').forEach(c=>{c.classList.remove('selected'); c.setAttribute('aria-pressed','false');});
+    card.classList.add('selected');
+    card.setAttribute('aria-pressed','true');
+    state.mode = card.dataset.mode;
+    document.body.classList.toggle('mode-stress', state.mode === 'stress');
+    document.getElementById('modeTag').textContent = 'Mode: ' + (state.mode === 'stress' ? 'Stress' : 'Calm');
+    document.getElementById('startBtn').disabled = false;
+  }
+  card.addEventListener('click', selectMode);
+  card.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); selectMode(); }
+  });
+});
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  renderCh1Scenario();
+  showScreen(1);
+});
+
+/* =========================================================
+   CHAPTER 1 LOGIC
+   ========================================================= */
+function renderCh1Scenario(){
+  const sc = CH1_SCENARIOS[state.ch1Index];
+  const box = document.getElementById('ch1Box');
+  box.innerHTML = `
+    <div class="scenario-text">${sc.text}</div>
+    <div class="option-list" role="radiogroup" aria-label="Scenario response options"></div>
+  `;
+  const list = box.querySelector('.option-list');
+  const shuffled = sc.options.slice(); // keep order stable for clarity; content itself is randomized across scenarios already
+  shuffled.forEach((opt, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.type = 'button';
+    btn.textContent = opt.label;
+    btn.setAttribute('role','radio');
+    btn.setAttribute('aria-checked', 'false');
+    btn.addEventListener('click', ()=>{
+      list.querySelectorAll('.option').forEach(o=>{o.classList.remove('chosen'); o.setAttribute('aria-checked','false');});
+      btn.classList.add('chosen');
+      btn.setAttribute('aria-checked','true');
+      state.ch1Choices[state.ch1Index] = opt.key;
+      document.getElementById('ch1Next').disabled = false;
+    });
+    list.appendChild(btn);
+  });
+  // restore previous choice if navigating back
+  if(state.ch1Choices[state.ch1Index]){
+    const prevKey = state.ch1Choices[state.ch1Index];
+    const match = Array.from(list.children).find((el,i)=> shuffled[i].key === prevKey);
+    if(match){ match.classList.add('chosen'); match.setAttribute('aria-checked','true'); }
+    document.getElementById('ch1Next').disabled = false;
+  } else {
+    document.getElementById('ch1Next').disabled = true;
+  }
+}
+
+document.getElementById('ch1Next').addEventListener('click', ()=>{
+  if(state.ch1Index < CH1_SCENARIOS.length - 1){
+    state.ch1Index++;
+    renderCh1Scenario();
+  } else {
+    // tally chapter 1 scores
+    state.ch1Choices.forEach(key=>{ state.scores[key] += 3; });
+    renderRankList('ch2List', CH2_CARDS);
+    showScreen(2);
+  }
+});
+
+document.getElementById('ch1Back').addEventListener('click', ()=>{
+  if(state.ch1Index > 0){
+    state.ch1Index--;
+    renderCh1Scenario();
+  } else {
+    showScreen(0);
+  }
+});
+
+/* =========================================================
+   REUSABLE DRAGGABLE RANK LIST (Chapters 2 & 3)
+   ========================================================= */
+function renderRankList(containerId, items){
+  const ul = document.getElementById(containerId);
+  ul.innerHTML = '';
+  items.forEach(item=>{
+    const li = document.createElement('li');
+    li.className = 'rank-item';
+    li.draggable = true;
+    li.tabIndex = 0;
+    li.dataset.key = item.key;
+    li.setAttribute('role','listitem');
+    li.setAttribute('aria-label', item.text);
+    li.innerHTML = `
+      <span class="drag-handle" aria-hidden="true">⠿</span>
+      <span class="rank-num"></span>
+      <span class="rank-text">${item.text}</span>
+      <span class="rank-controls">
+        <button class="mini-btn" type="button" data-dir="up" aria-label="Move up">↑</button>
+        <button class="mini-btn" type="button" data-dir="down" aria-label="Move down">↓</button>
+      </span>
+    `;
+    ul.appendChild(li);
+  });
+  numberList(ul);
+  attachDnD(ul);
+}
+
+function numberList(ul){
+  Array.from(ul.children).forEach((li,i)=>{
+    li.querySelector('.rank-num').textContent = i+1;
+  });
+}
+
+function attachDnD(ul){
+  let dragEl = null;
+
+  Array.from(ul.children).forEach(li=>{
+    // mouse / desktop HTML5 DnD
+    li.addEventListener('dragstart', ()=>{
+      dragEl = li;
+      li.classList.add('dragging');
+    });
+    li.addEventListener('dragend', ()=>{
+      li.classList.remove('dragging');
+      dragEl = null;
+      numberList(ul);
+    });
+    li.addEventListener('dragover', e=>{
+      e.preventDefault();
+      if(!dragEl || dragEl === li) return;
+      const rect = li.getBoundingClientRect();
+      const before = (e.clientY - rect.top) < rect.height/2;
+      ul.insertBefore(dragEl, before ? li : li.nextSibling);
+    });
+
+    // keyboard controls
+    li.querySelector('[data-dir="up"]').addEventListener('click', ()=> moveItem(ul, li, -1));
+    li.querySelector('[data-dir="down"]').addEventListener('click', ()=> moveItem(ul, li, 1));
+    li.addEventListener('keydown', e=>{
+      if(e.key === 'ArrowUp'){ e.preventDefault(); moveItem(ul, li, -1); li.focus(); }
+      if(e.key === 'ArrowDown'){ e.preventDefault(); moveItem(ul, li, 1); li.focus(); }
+    });
+
+    // touch fallback
+    let touchStartY = 0;
+    li.addEventListener('touchstart', e=>{
+      dragEl = li;
+      touchStartY = e.touches[0].clientY;
+      li.classList.add('dragging');
+    }, {passive:true});
+    li.addEventListener('touchmove', e=>{
+      if(!dragEl) return;
+      const touchY = e.touches[0].clientY;
+      const elAtPoint = document.elementFromPoint(e.touches[0].clientX, touchY);
+      const target = elAtPoint ? elAtPoint.closest('.rank-item') : null;
+      if(target && target !== dragEl && ul.contains(target)){
+        const rect = target.getBoundingClientRect();
+        const before = (touchY - rect.top) < rect.height/2;
+        ul.insertBefore(dragEl, before ? target : target.nextSibling);
+      }
+    }, {passive:true});
+    li.addEventListener('touchend', ()=>{
+      if(dragEl) dragEl.classList.remove('dragging');
+      dragEl = null;
+      numberList(ul);
+    });
+  });
+}
+
+function moveItem(ul, li, dir){
+  if(dir === -1 && li.previousElementSibling){
+    ul.insertBefore(li, li.previousElementSibling);
+  } else if(dir === 1 && li.nextElementSibling){
+    ul.insertBefore(li.nextElementSibling, li);
+  }
+  numberList(ul);
+}
+
+function getOrderedKeys(containerId){
+  return Array.from(document.getElementById(containerId).children).map(li=>li.dataset.key);
+}
+
+/* =========================================================
+   CHAPTER 2 NAV
+   ========================================================= */
+document.getElementById('ch2Next').addEventListener('click', ()=>{
+  state.ch2Order = getOrderedKeys('ch2List');
+  const weight = [5,4,3,2,1];
+  state.ch2Order.forEach((key,i)=>{ state.scores[key] += weight[i]; });
+  renderRankList('ch3List', CH3_STEPS);
+  showScreen(3);
+});
+document.getElementById('ch2Back').addEventListener('click', ()=>{
+  renderCh1Scenario();
+  showScreen(1);
+});
+
+/* =========================================================
+   CHAPTER 3 NAV
+   ========================================================= */
+document.getElementById('ch3Next').addEventListener('click', ()=>{
+  state.ch3Order = getOrderedKeys('ch3List');
+  const weight = [5,4,3,2,1];
+  state.ch3Order.forEach((key,i)=>{ state.scores[key] += weight[i]; });
+  buildJournal();
+  showScreen(4);
+});
+document.getElementById('ch3Back').addEventListener('click', ()=>{
+  renderRankList('ch2List', CH2_CARDS);
+  // restore previous order if available
+  if(state.ch2Order.length){
+    const ul = document.getElementById('ch2List');
+    const ordered = state.ch2Order.map(key => CH2_CARDS.find(c=>c.key===key));
+    renderRankList('ch2List', ordered);
+  }
+  showScreen(2);
+});
+
+/* =========================================================
+   JOURNAL BUILD
+   ========================================================= */
+function topKeyOf(scoreObj){
+  return Object.keys(scoreObj).sort((a,b)=> scoreObj[b]-scoreObj[a])[0];
+}
+
+function buildJournal(){
+  const total = Object.values(state.scores).reduce((a,b)=>a+b,0) || 1;
+  const topKey = topKeyOf(state.scores);
+
+  document.getElementById('topTendencyName').textContent = TENDENCIES[topKey].name;
+
+  const barChart = document.getElementById('barChart');
+  barChart.innerHTML = '';
+  ORDER.forEach(key=>{
+    const pct = Math.round((state.scores[key]/total)*100);
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `
+      <div class="bar-label">${TENDENCIES[key].name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
+      <div class="bar-pct">${pct}%</div>
+    `;
+    barChart.appendChild(row);
+    setTimeout(()=>{ row.querySelector('.bar-fill').style.width = pct + '%'; }, 100);
+  });
+
+  document.getElementById('insightText').textContent = TENDENCIES[topKey].blurb;
+
+  // per-chapter top tendency
+  const ch1Scores = {analytical:0,emotional:0,overthinking:0,action:0,balanced:0};
+  state.ch1Choices.forEach(key=>{ ch1Scores[key]+=1; });
+  const ch2Scores = {analytical:0,emotional:0,overthinking:0,action:0,balanced:0};
+  state.ch2Order.forEach((key,i)=>{ ch2Scores[key]+= (5-i); });
+  const ch3Scores = {analytical:0,emotional:0,overthinking:0,action:0,balanced:0};
+  state.ch3Order.forEach((key,i)=>{ ch3Scores[key]+= (5-i); });
+
+  const compare = document.getElementById('chapterCompare');
+  compare.innerHTML = `
+    <div class="compare-card"><div class="ch">Chapter 1</div><div class="val">${TENDENCIES[topKeyOf(ch1Scores)].name}</div></div>
+    <div class="compare-card"><div class="ch">Chapter 2</div><div class="val">${TENDENCIES[topKeyOf(ch2Scores)].name}</div></div>
+    <div class="compare-card"><div class="ch">Chapter 3</div><div class="val">${TENDENCIES[topKeyOf(ch3Scores)].name}</div></div>
+  `;
+}
+
+/* =========================================================
+   REPLAY / RESTART
+   ========================================================= */
+document.getElementById('replayBtn').addEventListener('click', ()=>{
+  const oppositeMode = state.mode === 'calm' ? 'stress' : 'calm';
+  resetState(false);
+  state.mode = oppositeMode;
+  document.body.classList.toggle('mode-stress', state.mode === 'stress');
+  document.getElementById('modeTag').textContent = 'Mode: ' + (state.mode === 'stress' ? 'Stress' : 'Calm');
+  document.querySelectorAll('.mode-card').forEach(c=>{
+    const isMatch = c.dataset.mode === state.mode;
+    c.classList.toggle('selected', isMatch);
+    c.setAttribute('aria-pressed', isMatch ? 'true':'false');
+  });
+  document.getElementById('startBtn').disabled = false;
+  renderCh1Scenario();
+  showScreen(1);
+});
+
+document.getElementById('restartBtn').addEventListener('click', ()=>{
+  resetState(false);
+  document.body.classList.remove('mode-stress');
+  document.getElementById('modeTag').textContent = 'Mode: Not selected';
+  document.querySelectorAll('.mode-card').forEach(c=>{ c.classList.remove('selected'); c.setAttribute('aria-pressed','false'); });
+  document.getElementById('startBtn').disabled = true;
+  showScreen(0);
+});
+
+/* init */
+updateProgress();
+
+})();
+</script>
+</body>
+</html>
