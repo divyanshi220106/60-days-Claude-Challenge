@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interlude — a quiet minute for busy people</title>
+<style>
+  :root{
+    --bg: #EEF1EC;
+    --bg-soft: #E4E9E1;
+    --surface: #FFFFFF;
+    --ink: #22302B;
+    --ink-soft: #5B6B62;
+    --ink-faint: #8B9A91;
+    --accent: #3E6259;
+    --accent-dark: #2C4A42;
+    --accent-warm: #E0A458;
+    --accent-warm-dark: #C88B3D;
+    --line: rgba(34,48,43,0.12);
+    --line-soft: rgba(34,48,43,0.07);
+    --error: #B0503F;
+    --radius: 18px;
+    --radius-sm: 12px;
+    --shadow: 0 1px 2px rgba(34,48,43,0.04), 0 8px 24px -12px rgba(34,48,43,0.18);
+    --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  .app{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Header ---------- */
+  header.top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 28px 4px 20px;
+    gap: 16px;
+  }
+  .brand{ display:flex; align-items:baseline; gap:12px; flex-wrap: wrap; }
+  .brand .mark{
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--accent-dark);
+  }
+  .brand .mark::before{
+    content: "";
+    display:inline-block;
+    width:9px; height:9px;
+    border-radius:50%;
+    background: var(--accent-warm);
+    margin-right:10px;
+    vertical-align: middle;
+    box-shadow: 0 0 0 5px rgba(224,164,88,0.18);
+  }
+  .brand .tag{
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    letter-spacing: 0.01em;
+  }
+  .key-btn{
+    display:flex; align-items:center; gap:8px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    padding: 9px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor:pointer;
+    transition: border-color .18s ease, color .18s ease, box-shadow .18s ease;
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+  }
+  .key-btn:hover{ border-color: var(--accent); color: var(--accent-dark); }
+  .key-dot{ width:7px; height:7px; border-radius:50%; background: var(--ink-faint); flex:none; }
+  .key-dot.set{ background: #4C8A6B; }
+
+  /* ---------- Layout ---------- */
+  .layout{
+    display:grid;
+    grid-template-columns: 1fr 300px;
+    gap: 22px;
+    align-items: start;
+    flex: 1;
+  }
+  @media (max-width: 880px){
+    .layout{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Chat panel ---------- */
+  .chat-panel{
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line-soft);
+    display:flex;
+    flex-direction:column;
+    height: 640px;
+    overflow:hidden;
+  }
+  @media (max-width: 880px){ .chat-panel{ height: 72vh; } }
+
+  .messages{
+    flex:1;
+    overflow-y:auto;
+    padding: 26px 26px 10px;
+    display:flex;
+    flex-direction:column;
+    gap: 16px;
+  }
+  .messages::-webkit-scrollbar{ width:8px; }
+  .messages::-webkit-scrollbar-thumb{ background: var(--line); border-radius:8px; }
+
+  .empty-state{
+    margin: auto;
+    text-align:center;
+    max-width: 420px;
+    padding: 20px;
+  }
+  .empty-state h2{
+    font-family: var(--font-display);
+    font-size: 24px;
+    margin: 0 0 10px;
+    color: var(--accent-dark);
+    font-weight: 700;
+  }
+  .empty-state p{
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    margin: 0 0 22px;
+  }
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+  }
+  .chip{
+    border: 1px solid var(--line);
+    background: var(--bg-soft);
+    color: var(--ink);
+    padding: 9px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor:pointer;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .chip:hover{ border-color: var(--accent); background: #fff; transform: translateY(-1px); }
+
+  .msg{
+    display:flex;
+    max-width: 82%;
+    animation: rise .32s ease both;
+  }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  .msg.user{ align-self:flex-end; }
+  .msg.assistant{ align-self:flex-start; }
+  .bubble{
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14.5px;
+    white-space: pre-wrap;
+    line-height: 1.55;
+  }
+  .msg.user .bubble{
+    background: var(--accent);
+    color: #F6F8F5;
+    border-bottom-right-radius: 4px;
+  }
+  .msg.assistant .bubble{
+    background: var(--bg-soft);
+    color: var(--ink);
+    border-bottom-left-radius: 4px;
+  }
+  .msg.error .bubble{
+    background: #F7E9E5;
+    color: var(--error);
+    border: 1px solid rgba(176,80,63,0.25);
+  }
+  .retry-btn{
+    margin-top:8px;
+    background:none;
+    border: 1px solid var(--error);
+    color: var(--error);
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    cursor:pointer;
+  }
+
+  .typing{
+    align-self:flex-start;
+    display:flex;
+    gap:5px;
+    padding: 15px 16px;
+    background: var(--bg-soft);
+    border-radius: var(--radius-sm);
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .typing span{
+    width:6px; height:6px; border-radius:50%;
+    background: var(--ink-faint);
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2){ animation-delay: .15s; }
+  .typing span:nth-child(3){ animation-delay: .3s; }
+  @keyframes bounce{
+    0%,60%,100%{ transform: translateY(0); opacity:.5; }
+    30%{ transform: translateY(-5px); opacity:1; }
+  }
+
+  .composer{
+    display:flex;
+    gap:10px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--line-soft);
+    background: var(--surface);
+  }
+  .composer textarea{
+    flex:1;
+    resize:none;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: var(--ink);
+    background: var(--bg);
+    max-height: 110px;
+    transition: border-color .15s ease;
+  }
+  .composer textarea:focus{
+    outline: none;
+    border-color: var(--accent);
+  }
+  .send-btn{
+    background: var(--accent);
+    color: #fff;
+    border:none;
+    border-radius: 14px;
+    padding: 0 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor:pointer;
+    transition: background .18s ease, transform .1s ease;
+    flex: none;
+  }
+  .send-btn:hover:not(:disabled){ background: var(--accent-dark); }
+  .send-btn:active:not(:disabled){ transform: scale(0.97); }
+  .send-btn:disabled{ opacity:.45; cursor:not-allowed; }
+
+  /* ---------- Breathing side panel ---------- */
+  .side-panel{
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line-soft);
+    padding: 24px 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 16px;
+  }
+  .side-panel h3{
+    font-family: var(--font-display);
+    font-size: 16px;
+    margin:0;
+    color: var(--accent-dark);
+    align-self:flex-start;
+  }
+  .breath-stage{
+    position:relative;
+    width: 180px;
+    height: 180px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .breath-ring{
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    border: 1.5px solid var(--line);
+  }
+  .breath-circle{
+    width: 88px; height:88px;
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #6E9186, var(--accent) 70%);
+    box-shadow: 0 10px 30px -10px rgba(62,98,89,0.5);
+    animation: ambient 9s ease-in-out infinite;
+  }
+  @keyframes ambient{
+    0%,100%{ transform: scale(0.82); }
+    50%{ transform: scale(1.05); }
+  }
+  .breath-circle.active{
+    animation: guided 19s ease-in-out infinite;
+  }
+  @keyframes guided{
+    0%{ transform: scale(0.72); }
+    21%{ transform: scale(1.15); }
+    58%{ transform: scale(1.15); }
+    100%{ transform: scale(0.72); }
+  }
+  .breath-label{
+    font-family: var(--font-display);
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    min-height: 18px;
+    text-align:center;
+  }
+  .breath-btn{
+    width:100%;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    cursor:pointer;
+    transition: background .18s ease, border-color .18s ease;
+  }
+  .breath-btn:hover{ border-color: var(--accent); }
+  .breath-btn.on{
+    background: var(--accent-warm);
+    border-color: var(--accent-warm-dark);
+    color: #3A2A0F;
+    font-weight:600;
+  }
+  .side-note{
+    font-size: 12px;
+    color: var(--ink-faint);
+    text-align:center;
+    line-height:1.5;
+  }
+  .crisis-note{
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    border-top: 1px solid var(--line-soft);
+    padding-top: 14px;
+    text-align:center;
+    line-height:1.5;
+  }
+
+  /* ---------- Docs panel ---------- */
+  .docs{
+    margin-top: 28px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--line-soft);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .docs-toggle{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 18px 24px;
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-size: 14.5px;
+    font-weight:600;
+    color: var(--accent-dark);
+    font-family: var(--font-body);
+  }
+  .docs-toggle .chevron{
+    transition: transform .25s ease;
+    color: var(--ink-faint);
+  }
+  .docs.open .chevron{ transform: rotate(180deg); }
+  .docs-body{
+    max-height:0;
+    overflow:hidden;
+    transition: max-height .35s ease;
+  }
+  .docs.open .docs-body{ max-height: 3200px; }
+  .docs-inner{ padding: 4px 24px 26px; }
+  .docs-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .docs-tab{
+    border:1px solid var(--line);
+    background: var(--bg-soft);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size:12.5px;
+    cursor:pointer;
+    color: var(--ink-soft);
+  }
+  .docs-tab.active{
+    background: var(--accent);
+    color:#fff;
+    border-color: var(--accent);
+  }
+  .docs-section{ display:none; }
+  .docs-section.active{ display:block; }
+  .docs-section h4{
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: var(--accent-dark);
+    margin: 18px 0 8px;
+  }
+  .docs-section h4:first-child{ margin-top:0; }
+  .docs-section p, .docs-section li{
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height:1.65;
+  }
+  .docs-section ul{ margin: 6px 0 14px; padding-left: 20px; }
+  pre.sysprompt{
+    background: #1C2823;
+    color: #DCE7DF;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height:1.6;
+    padding: 18px;
+    border-radius: 12px;
+    overflow-x:auto;
+    white-space: pre-wrap;
+  }
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0;
+    background: rgba(34,48,43,0.45);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 50;
+    padding: 20px;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .2s ease;
+  }
+  .modal-backdrop.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px -10px rgba(0,0,0,0.35);
+    transform: translateY(8px);
+    transition: transform .2s ease;
+  }
+  .modal-backdrop.show .modal{ transform: translateY(0); }
+  .modal h3{
+    font-family: var(--font-display);
+    margin: 0 0 8px;
+    color: var(--accent-dark);
+  }
+  .modal p{ font-size:13.5px; color: var(--ink-soft); margin: 0 0 16px; }
+  .modal input{
+    width:100%;
+    padding: 11px 13px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    font-size: 14px;
+    font-family: var(--font-mono);
+    margin-bottom: 14px;
+  }
+  .modal input:focus{ outline:none; border-color: var(--accent); }
+  .modal-actions{ display:flex; gap:10px; justify-content:flex-end; }
+  .modal-actions button{
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    cursor:pointer;
+    border: none;
+  }
+  .modal-cancel{ background: var(--bg-soft); color: var(--ink-soft); }
+  .modal-save{ background: var(--accent); color:#fff; font-weight:600; }
+
+  footer.foot{
+    text-align:center;
+    font-size:12px;
+    color: var(--ink-faint);
+    padding: 26px 0 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="mark">Interlude</span>
+      <span class="tag">a quiet minute, built for busy people</span>
+    </div>
+    <button class="key-btn" id="keyBtn">
+      <span class="key-dot" id="keyDot"></span>
+      <span id="keyBtnLabel">Add API key</span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <div class="chat-panel">
+      <div class="messages" id="messages">
+        <div class="empty-state" id="emptyState">
+          <h2>Got a minute between things?</h2>
+          <p>Tell me what's weighing on you right now — we'll find one quick way through it before you're back to it.</p>
+          <div class="chips">
+            <button class="chip" data-text="A big presentation is coming up and my mind won't stop racing.">Racing thoughts before a big moment</button>
+            <button class="chip" data-text="My inbox is out of control and I can't focus on anything.">Inbox chaos, can't focus</button>
+            <button class="chip" data-text="I can't switch off after work, my mind is still at my desk.">Can't switch off after work</button>
+            <button class="chip" data-text="I just got out of a tense conversation with a coworker and I'm still tight in my chest.">Tense conversation, still tight</button>
+          </div>
+        </div>
+      </div>
+      <div class="composer">
+        <textarea id="input" rows="1" placeholder="What's on your mind..."></textarea>
+        <button class="send-btn" id="sendBtn">Send</button>
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <h3>Breathing companion</h3>
+      <div class="breath-stage">
+        <div class="breath-ring"></div>
+        <div class="breath-circle" id="breathCircle"></div>
+      </div>
+      <div class="breath-label" id="breathLabel">Ambient pace — tap below to try a guided breath</div>
+      <button class="breath-btn" id="breathBtn">Guide me through a breath</button>
+      <div class="side-note">4 seconds in · 7 hold · 8 out — the classic calming ratio. Three rounds, about a minute total.</div>
+      <div class="crisis-note">Interlude offers stress-relief techniques, not crisis support. If you're in danger or thinking about harming yourself, please contact a crisis line or emergency services now.</div>
+    </div>
+  </div>
+
+  <div class="docs" id="docs">
+    <button class="docs-toggle" id="docsToggle">
+      <span>How this was built</span>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="docs-body">
+      <div class="docs-inner">
+        <div class="docs-tabs">
+          <button class="docs-tab active" data-tab="prompt">System prompt</button>
+          <button class="docs-tab" data-tab="ui">UI decisions</button>
+          <button class="docs-tab" data-tab="future">Future extensions</button>
+        </div>
+
+        <div class="docs-section active" data-section="prompt">
+          <h4>Why this system prompt is shaped this way</h4>
+          <p>Interlude is scoped deliberately narrow: one stressor, one technique, one session. The prompt front-loads that constraint so the model doesn't drift into open-ended therapy-style conversation, which would be both out of scope and a poor fit for someone with five minutes between meetings. A fixed six-step conversation shape keeps every session predictable without feeling scripted, and a named technique library (rather than "pick anything") keeps responses concrete and repeatable instead of generic mindfulness platitudes.</p>
+          <p>Crisis handling is written as a hard override, not a suggestion, because a wellness companion that stays in "quick breathing tip" mode during a real crisis would be actively harmful. The prompt also explicitly forbids diagnosing or claiming clinical credentials, since this is a stress-relief companion, not a therapist.</p>
+          <pre class="sysprompt" id="sysPromptText"></pre>
+        </div>
+
+        <div class="docs-section" data-section="ui">
+          <h4>Design decisions</h4>
+          <ul>
+            <li><strong>Two-panel layout:</strong> the conversation carries the emotional work; a persistent side panel holds the breathing circle so the "quick technique" promise is visible even before the person types anything — it's not just described in text, it's demonstrated.</li>
+            <li><strong>Ambient vs. guided breathing:</strong> the circle pulses gently at all times (low-commitment, non-intrusive), and switches to a slower 4-7-8 guided rhythm with text cues only when the person opts in — mirroring how the assistant itself only offers a technique after listening first.</li>
+            <li><strong>Warm sage + amber palette:</strong> chosen instead of a clinical blue/white pairing to feel more like a supportive colleague's office than a medical app, while amber is reserved for the one moment of real warmth — the active breathing state and the send action.</li>
+            <li><strong>Starter chips in the empty state:</strong> busy professionals often stall on "how do I even describe this," so four concrete, recognizable scenarios lower the barrier to the first message.</li>
+            <li><strong>Visible API key control:</strong> since this runs client-side with no backend, the key lives in memory only for the session (never localStorage) and the button always shows whether a key is set, so trust is never ambiguous.</li>
+          </ul>
+        </div>
+
+        <div class="docs-section" data-section="future">
+          <h4>Where this could go next</h4>
+          <ul>
+            <li><strong>Tools:</strong> a calendar-read tool to automatically detect "you have 12 minutes until your next meeting" and tailor technique length without asking; a simple timer tool the model can trigger directly instead of relying on CSS animation timing alone.</li>
+            <li><strong>Memory:</strong> a lightweight, user-controlled log of which techniques worked best for which stressor, so week two onward Interlude can say "last time inbox overwhelm hit, the physiological sigh worked for you — want that again?"</li>
+            <li><strong>Multi-step workflows:</strong> an optional end-of-week reflection flow that surfaces patterns ("this is the third time a 1:1 with the same person spiked your stress") and gently suggests a boundary-setting script rather than another in-the-moment fix.</li>
+            <li><strong>Team/manager mode:</strong> an aggregated, anonymized view for team leads showing overall stress trends (never individual sessions) to inform workload conversations.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">Session state lives only in this browser tab. Nothing is saved when you close it.</footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>Add your Anthropic API key</h3>
+    <p>Stored only in this tab's memory for the current session — never saved to disk or sent anywhere but api.anthropic.com.</p>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
+    <div class="modal-actions">
+      <button class="modal-cancel" id="modalCancel">Cancel</button>
+      <button class="modal-save" id="modalSave">Save key</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are Interlude, a warm, friendly mental wellness companion built specifically for busy professionals who need meaningful stress relief in the middle of a packed day.
+
+ROLE & PURPOSE
+Your job in a single session is narrow and concrete: listen to what's stressing the person right now, understand it just enough to respond well, and hand them ONE quick, concrete technique they can use in the next five minutes — before their next meeting, call, or task. You are a companion for a brief check-in, not a therapist, and not a long-form course in mindfulness.
+
+SCOPE
+- You handle: everyday work stress, overwhelm, racing thoughts before a big moment, tension from conflict or deadlines, difficulty transitioning between tasks, decision fatigue.
+- You do not diagnose, treat, or label any mental health condition. If the person names a diagnosis themselves, you can discuss it supportively but never assign one yourself.
+- You are not a replacement for therapy, medical care, or crisis support, and you say so plainly if the conversation moves in that direction.
+
+CONVERSATION SHAPE (multi-turn, but time-aware)
+1. Open warmly and invite them to share what's on their mind in a sentence or two. Don't ask more than one question at a time.
+2. Reflect back what you heard in one or two sentences, in plain, human language — never clinical, never a diagnosis.
+3. Ask at most one clarifying question if you genuinely need it to pick the right technique (e.g., "is this tightness more in your chest or your head?" or "do you have 60 seconds or 5 minutes?"). Skip this if the picture is already clear.
+4. Offer ONE specific technique, not a menu. Name it, explain what to do step by step in plain numbered or short-line instructions, and say how long it takes.
+5. Invite them to try it right there in the conversation if that fits (e.g., a paced-breathing count you narrate turn by turn, one line per cue).
+6. Close by checking in briefly on how they feel, and let the conversation end naturally — don't drag it out or manufacture more turns than the person wants.
+
+TECHNIQUE LIBRARY YOU DRAW FROM (choose the single best fit, don't dump all of them)
+- Box breathing (4-4-4-4) for racing thoughts or pre-meeting nerves
+- Physiological sigh (double inhale through the nose, long exhale through the mouth) for acute overwhelm — works in under 30 seconds
+- 5-4-3-2-1 grounding for spiraling thoughts or feeling disconnected
+- Progressive micro-tension release (shoulders, jaw, hands) for physical tension built up at a desk
+- A 90-second "name it to tame it" reframe for frustration or conflict residue
+- A one-line boundary-setting script for when the stressor is a person or request they can't say no to in the moment
+
+TONE
+Warm and friendly, like a genuinely caring colleague who happens to be good at this — never clinical, never saccharine, never preachy. Short paragraphs. Sparing, occasional emoji at most. Respect that this person has very little time: no long preambles, no "let's take a journey" framing.
+
+CONSTRAINTS
+- Never invent or claim clinical credentials ("as your therapist," "your diagnosis is...").
+- Never give medication advice or suggest changing prescribed treatment.
+- Keep responses tight: aim for under 120 words unless you're walking someone through a step-by-step technique that needs pacing.
+- Never ask more than one question per turn.
+- Don't pathologize normal stress — not everything needs a label or a technique; sometimes reflecting back and validating is enough, and it's fine to say so.
+
+CRISIS & ESCALATION HANDLING
+- If the person expresses intent to harm themselves or others, or describes a mental health crisis, stop offering stress techniques immediately. Acknowledge what they've shared with care, encourage them to contact a crisis line, emergency services, or a trusted person right now, and offer to stay with them in the conversation. Never attempt to handle a crisis with a breathing exercise.
+- If a message suggests something beyond situational stress (persistent symptoms over weeks, panic attacks, trauma), gently suggest they consider talking to a therapist or doctor, without diagnosing them yourself.
+
+OUTPUT FORMAT
+- Plain conversational text. No headers, no markdown tables.
+- When walking someone through timed breathing, use short line-by-line pacing cues (e.g., "Breathe in... 2... 3... 4" on its own line) rather than a dense paragraph.
+
+EDGE CASES
+- If the person is vague ("I'm just stressed"), ask one gentle clarifying question rather than guessing.
+- If they want to vent without wanting a technique, let them — ask whether they want a quick tool or just needed to say it out loud, and follow their lead.
+- If asked something entirely outside scope (legal advice, coding help, etc.), gently redirect: acknowledge you're built for stress check-ins and suggest a general assistant for that.
+- If the same stressor keeps resurfacing across a session, consider offering a prevention-oriented technique (like a boundary script) instead of another in-the-moment fix.`;
+
+document.getElementById('sysPromptText').textContent = SYSTEM_PROMPT;
+
+let apiKey = '';
+let conversation = [];
+let isSending = false;
+
+// ---------- Elements ----------
+const messagesEl = document.getElementById('messages');
+const emptyState = document.getElementById('emptyState');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const keyBtn = document.getElementById('keyBtn');
+const keyDot = document.getElementById('keyDot');
+const keyBtnLabel = document.getElementById('keyBtnLabel');
+const modalBackdrop = document.getElementById('modalBackdrop');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const modalSave = document.getElementById('modalSave');
+const modalCancel = document.getElementById('modalCancel');
+
+// ---------- API key modal ----------
+function openModal(){
+  apiKeyInput.value = apiKey;
+  modalBackdrop.classList.add('show');
+  setTimeout(()=> apiKeyInput.focus(), 50);
+}
+function closeModal(){ modalBackdrop.classList.remove('show'); }
+keyBtn.addEventListener('click', openModal);
+modalCancel.addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) closeModal(); });
+modalSave.addEventListener('click', ()=>{
+  apiKey = apiKeyInput.value.trim();
+  updateKeyUI();
+  closeModal();
+});
+function updateKeyUI(){
+  if(apiKey){
+    keyDot.classList.add('set');
+    keyBtnLabel.textContent = 'API key set';
+  } else {
+    keyDot.classList.remove('set');
+    keyBtnLabel.textContent = 'Add API key';
+  }
+}
+
+// ---------- Chips ----------
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    inputEl.value = chip.dataset.text;
+    inputEl.focus();
+    autosize();
+  });
+});
+
+// ---------- Textarea autosize ----------
+function autosize(){
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 110) + 'px';
+}
+inputEl.addEventListener('input', autosize);
+inputEl.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+sendBtn.addEventListener('click', sendMessage);
+
+// ---------- Rendering ----------
+function renderMessage(role, text, isError){
+  if(emptyState) emptyState.remove();
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + role + (isError ? ' error' : '');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+  if(isError){
+    const retry = document.createElement('button');
+    retry.className = 'retry-btn';
+    retry.textContent = 'Try again';
+    retry.addEventListener('click', ()=>{ wrap.remove(); sendMessage(true); });
+    bubble.appendChild(document.createElement('br'));
+    bubble.appendChild(retry);
+  }
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return wrap;
+}
+
+let typingEl = null;
+function showTyping(){
+  typingEl = document.createElement('div');
+  typingEl.className = 'typing';
+  typingEl.innerHTML = '<span></span><span></span><span></span>';
+  messagesEl.appendChild(typingEl);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+function hideTyping(){
+  if(typingEl){ typingEl.remove(); typingEl = null; }
+}
+
+// ---------- Sending ----------
+async function sendMessage(isRetry){
+  if(isSending) return;
+  let text = inputEl.value.trim();
+  if(!isRetry){
+    if(!text) return;
+  } else {
+    const lastUser = [...conversation].reverse().find(m=>m.role==='user');
+    text = lastUser ? lastUser.content : '';
+  }
+
+  if(!apiKey){
+    openModal();
+    return;
+  }
+
+  if(!isRetry){
+    conversation.push({role:'user', content:text});
+    renderMessage('user', text);
+    inputEl.value = '';
+    autosize();
+  }
+
+  isSending = true;
+  sendBtn.disabled = true;
+  showTyping();
+
+  try{
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: conversation
+      })
+    });
+
+    if(!response.ok){
+      let detail = '';
+      try{ const errJson = await response.json(); detail = errJson?.error?.message || ''; }catch(e){}
+      if(response.status === 401){
+        hideTyping();
+        renderMessage('assistant', "That API key doesn't seem to be valid. Please check it and add it again.", true);
+        apiKey = '';
+        updateKeyUI();
+      } else if(response.status === 429){
+        hideTyping();
+        renderMessage('assistant', "Things are a little busy right now — mind trying again in a moment?", true);
+      } else {
+        hideTyping();
+        renderMessage('assistant', "Something went wrong reaching the server" + (detail ? (": " + detail) : ".") , true);
+      }
+      isSending = false;
+      sendBtn.disabled = false;
+      return;
+    }
+
+    const data = await response.json();
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    const reply = textBlock ? textBlock.text : "I didn't quite catch that — could you say it again?";
+    hideTyping();
+    conversation.push({role:'assistant', content: reply});
+    renderMessage('assistant', reply);
+  } catch(err){
+    hideTyping();
+    renderMessage('assistant', "Couldn't reach the server. Check your connection and try again.", true);
+  }
+
+  isSending = false;
+  sendBtn.disabled = false;
+}
+
+updateKeyUI();
+
+// ---------- Docs panel ----------
+const docs = document.getElementById('docs');
+const docsToggle = document.getElementById('docsToggle');
+docsToggle.addEventListener('click', ()=> docs.classList.toggle('open'));
+
+document.querySelectorAll('.docs-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.docs-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.docs-section').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelector('.docs-section[data-section="'+tab.dataset.tab+'"]').classList.add('active');
+  });
+});
+
+// ---------- Breathing companion ----------
+const breathCircle = document.getElementById('breathCircle');
+const breathLabel = document.getElementById('breathLabel');
+const breathBtn = document.getElementById('breathBtn');
+let breathTimers = [];
+let breathActive = false;
+
+function clearBreathTimers(){
+  breathTimers.forEach(t => clearTimeout(t));
+  breathTimers = [];
+}
+
+function runBreathCycle(round, totalRounds){
+  if(!breathActive) return;
+  if(round > totalRounds){
+    stopBreathing();
+    return;
+  }
+  breathLabel.textContent = 'Breathe in...';
+  breathTimers.push(setTimeout(()=>{
+    if(!breathActive) return;
+    breathLabel.textContent = 'Hold...';
+  }, 4000));
+  breathTimers.push(setTimeout(()=>{
+    if(!breathActive) return;
+    breathLabel.textContent = 'Breathe out, slowly...';
+  }, 11000));
+  breathTimers.push(setTimeout(()=>{
+    if(!breathActive) return;
+    runBreathCycle(round + 1, totalRounds);
+  }, 19000));
+}
+
+function startBreathing(){
+  breathActive = true;
+  breathCircle.classList.add('active');
+  breathBtn.classList.add('on');
+  breathBtn.textContent = 'Stop guided breathing';
+  runBreathCycle(1, 3);
+}
+
+function stopBreathing(){
+  breathActive = false;
+  clearBreathTimers();
+  breathCircle.classList.remove('active');
+  breathBtn.classList.remove('on');
+  breathBtn.textContent = 'Guide me through a breath';
+  breathLabel.textContent = 'Ambient pace — tap below to try a guided breath';
+}
+
+breathBtn.addEventListener('click', ()=>{
+  if(breathActive) stopBreathing();
+  else startBreathing();
+});
+</script>
+
+</body>
+</html>
