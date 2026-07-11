@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Learning Studio — JavaScript Core Fundamentals</title>
+<style>
+:root{
+  --bg:#0B0F14;
+  --bg-panel:#121821;
+  --bg-elevated:#1A2230;
+  --bg-hover:#212B3B;
+  --border:#26303F;
+  --text-primary:#E6EDF3;
+  --text-secondary:#93A1B0;
+  --text-dim:#5C6773;
+  --purple:#C792EA;
+  --green:#7EE787;
+  --orange:#FFA657;
+  --blue:#79C0FF;
+  --red:#FF7B72;
+  --pink:#F5A8D0;
+  --font-display:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-body:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-mono:ui-monospace,"Cascadia Code","SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --radius:10px;
+  --shadow: 0 8px 30px rgba(0,0,0,.35);
+}
+body.light{
+  --bg:#F5F7FA;
+  --bg-panel:#FFFFFF;
+  --bg-elevated:#EEF2F6;
+  --bg-hover:#E4EAF1;
+  --border:#DCE3EA;
+  --text-primary:#0F1620;
+  --text-secondary:#48566B;
+  --text-dim:#8290A3;
+  --purple:#8E4EC6;
+  --green:#1A7F37;
+  --orange:#B35900;
+  --blue:#0B6BCB;
+  --red:#CF222E;
+  --pink:#C23B8E;
+  --shadow: 0 8px 24px rgba(15,22,32,.10);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text-primary);
+  font-family:var(--font-body);
+  line-height:1.6;
+  transition:background .25s ease,color .25s ease;
+}
+::selection{background:var(--purple);color:#0B0F14;}
+h1,h2,h3,h4{font-family:var(--font-display);margin:0 0 .5em 0;letter-spacing:-.01em;}
+p{margin:0 0 1em 0;color:var(--text-secondary);}
+a{color:var(--blue);}
+code,.mono{font-family:var(--font-mono);}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  color:var(--purple);
+  font-weight:700;
+  display:block;
+  margin-bottom:.5em;
+}
+button{font-family:var(--font-body);cursor:pointer;}
+.btn{
+  background:var(--bg-elevated);
+  border:1px solid var(--border);
+  color:var(--text-primary);
+  padding:.65em 1.1em;
+  border-radius:8px;
+  font-size:.9rem;
+  font-weight:600;
+  transition:all .15s ease;
+}
+.btn:hover{background:var(--bg-hover);border-color:var(--blue);transform:translateY(-1px);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-primary{
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  border:none;color:#0B0F14;
+}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-sm{padding:.4em .8em;font-size:.8rem;}
+
+/* ===== SHELL ===== */
+.app-shell{display:flex;min-height:100vh;}
+.sidebar{
+  width:280px;flex-shrink:0;background:var(--bg-panel);
+  border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;overflow-y:auto;
+  padding:24px 16px;z-index:50;transition:transform .25s ease;
+}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:24px;padding:0 8px;}
+.brand-mark{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-weight:800;color:#0B0F14;font-size:1rem;
+}
+.brand-name{font-family:var(--font-display);font-weight:800;font-size:.98rem;line-height:1.1;}
+.brand-sub{font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);}
+
+.nav-section-label{
+  font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.12em;margin:18px 8px 8px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 10px;border-radius:8px;margin-bottom:2px;
+  color:var(--text-secondary);font-size:.88rem;font-weight:600;
+  border:1px solid transparent;
+}
+.nav-item .ni-icon{
+  width:22px;height:22px;border-radius:6px;background:var(--bg-elevated);
+  display:flex;align-items:center;justify-content:center;font-size:.72rem;
+  font-family:var(--font-mono);flex-shrink:0;color:var(--text-dim);
+}
+.nav-item.enabled{cursor:pointer;}
+.nav-item.enabled:hover{background:var(--bg-hover);color:var(--text-primary);}
+.nav-item.active{background:var(--bg-elevated);color:var(--text-primary);border-color:var(--border);}
+.nav-item.active .ni-icon{background:linear-gradient(135deg,var(--purple),var(--blue));color:#0B0F14;}
+.nav-item.locked{opacity:.42;cursor:not-allowed;}
+.nav-item.done .ni-icon{background:var(--green);color:#0B0F14;}
+.nav-item .ni-score{margin-left:auto;font-family:var(--font-mono);font-size:.7rem;color:var(--text-dim);}
+
+.badges-row{display:flex;gap:6px;flex-wrap:wrap;padding:0 8px;margin-top:16px;}
+.badge-chip{
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:1rem;background:var(--bg-elevated);border:1px solid var(--border);opacity:.3;filter:grayscale(1);
+  transition:all .3s ease;
+}
+.badge-chip.earned{opacity:1;filter:none;box-shadow:0 0 0 2px var(--green);}
+
+/* ===== MAIN ===== */
+.main{margin-left:280px;flex:1;min-width:0;}
+.topbar{
+  position:sticky;top:0;z-index:40;background:var(--bg);
+  border-bottom:1px solid var(--border);
+  padding:12px 32px;display:flex;align-items:center;gap:16px;
+  backdrop-filter:blur(8px);
+}
+.hamburger{display:none;background:none;border:1px solid var(--border);border-radius:8px;width:38px;height:38px;color:var(--text-primary);}
+.progress-wrap{flex:1;display:flex;align-items:center;gap:10px;}
+.progress-track{flex:1;height:6px;background:var(--bg-elevated);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--blue));width:0%;transition:width .4s ease;}
+.progress-label{font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim);white-space:nowrap;}
+.topbar-actions{display:flex;gap:8px;}
+.icon-btn{
+  width:38px;height:38px;border-radius:8px;background:var(--bg-elevated);
+  border:1px solid var(--border);color:var(--text-primary);display:flex;
+  align-items:center;justify-content:center;font-size:1rem;
+}
+.icon-btn:hover{background:var(--bg-hover);}
+
+.content{max-width:880px;margin:0 auto;padding:40px 32px 100px;}
+.page{display:none;animation:fadein .35s ease;}
+.page.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ===== CARDS / SECTIONS ===== */
+.card{
+  background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px;margin-bottom:20px;
+}
+.hero{
+  background:linear-gradient(160deg,var(--bg-panel),var(--bg-elevated));
+  border:1px solid var(--border);border-radius:14px;padding:36px;margin-bottom:28px;box-shadow:var(--shadow);
+}
+.hero h1{font-size:2rem;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:20px;}
+.stat-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.stat-box .stat-num{font-family:var(--font-mono);font-size:1.3rem;font-weight:800;color:var(--blue);}
+.stat-box .stat-label{font-size:.76rem;color:var(--text-dim);}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:720px){.two-col{grid-template-columns:1fr;}}
+
+.section-title-row{display:flex;align-items:baseline;gap:10px;margin:36px 0 14px;}
+.section-title-row h2{font-size:1.35rem;}
+.section-num{font-family:var(--font-mono);color:var(--purple);font-weight:800;}
+
+.analogy-box{
+  border-left:3px solid var(--orange);background:var(--bg-elevated);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:14px 0;
+}
+.analogy-box .lbl{font-family:var(--font-mono);font-size:.7rem;color:var(--orange);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:4px;display:block;}
+
+.misconception-box{
+  border-left:3px solid var(--red);background:var(--bg-elevated);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:8px 0;
+}
+.misconception-box .lbl{font-family:var(--font-mono);font-size:.7rem;color:var(--red);text-transform:uppercase;letter-spacing:.1em;font-weight:700;}
+
+.takeaways{background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:18px 0;}
+.takeaways ul{margin:0;padding-left:1.2em;}
+.takeaways li{margin-bottom:6px;color:var(--text-primary);}
+
+/* code block */
+.codeblock{
+  background:#0B0F14;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;
+}
+body.light .codeblock{background:#0F1620;}
+.codeblock .cb-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);
+  font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim);
+}
+.codeblock pre{margin:0;padding:16px;overflow-x:auto;font-family:var(--font-mono);font-size:.84rem;color:#E6EDF3;line-height:1.65;}
+.tok-kw{color:var(--purple);}
+.tok-str{color:var(--green);}
+.tok-num{color:var(--orange);}
+.tok-fn{color:var(--blue);}
+.tok-cm{color:var(--text-dim);font-style:italic;}
+
+/* console / signature element */
+.console{
+  background:#05070A;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;
+}
+.console .c-head{
+  display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);
+}
+.c-dot{width:9px;height:9px;border-radius:50%;}
+.console .c-body{padding:14px 16px;font-family:var(--font-mono);font-size:.82rem;min-height:40px;color:var(--green);white-space:pre-wrap;}
+.console .c-body .out-error{color:var(--red);}
+.console .c-body .out-comment{color:var(--text-dim);}
+.blink-cursor{display:inline-block;width:7px;height:14px;background:var(--green);animation:blink 1s step-end infinite;vertical-align:middle;}
+@keyframes blink{50%{opacity:0;}}
+
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.86rem;}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);}
+th{font-family:var(--font-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);}
+tr:last-child td{border-bottom:none;}
+
+.diagram{background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:18px;margin:14px 0;display:flex;justify-content:center;}
+.diagram svg text{font-family:var(--font-mono);}
+
+/* exercise / interactive widgets */
+.exercise{border:1px dashed var(--border);border-radius:10px;padding:18px;margin:14px 0;background:var(--bg-panel);}
+.exercise .ex-lbl{font-family:var(--font-mono);font-size:.7rem;color:var(--blue);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:8px;display:block;}
+select,input[type=text],textarea{
+  background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-primary);
+  padding:.5em .7em;border-radius:6px;font-family:var(--font-mono);font-size:.85rem;
+}
+textarea{width:100%;resize:vertical;min-height:110px;}
+.chip{
+  display:inline-flex;align-items:center;padding:.4em .9em;border-radius:99px;
+  background:var(--bg-elevated);border:1px solid var(--border);font-family:var(--font-mono);
+  font-size:.82rem;margin:3px;cursor:pointer;user-select:none;transition:all .15s;
+}
+.chip:hover{border-color:var(--blue);}
+.chip.correct{background:rgba(126,231,135,.15);border-color:var(--green);color:var(--green);}
+.chip.incorrect{background:rgba(255,123,114,.15);border-color:var(--red);color:var(--red);}
+.chip.disabled{pointer-events:none;}
+
+/* quiz */
+.quiz-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;padding:26px;margin-top:20px;}
+.quiz-q{margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.quiz-q:last-of-type{border-bottom:none;}
+.quiz-q .qtext{font-weight:700;margin-bottom:10px;color:var(--text-primary);}
+.q-opt{
+  display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;
+  border:1px solid var(--border);margin-bottom:8px;cursor:pointer;background:var(--bg-elevated);
+  font-size:.88rem;
+}
+.q-opt:hover{border-color:var(--blue);}
+.q-opt input{margin-top:3px;}
+.q-opt.picked{border-color:var(--blue);background:rgba(121,192,255,.08);}
+.q-opt.right{border-color:var(--green);background:rgba(126,231,135,.1);}
+.q-opt.wrong{border-color:var(--red);background:rgba(255,123,114,.1);}
+.q-feedback{display:none;margin-top:8px;padding:10px 12px;border-radius:8px;background:var(--bg-elevated);font-size:.84rem;color:var(--text-secondary);border-left:3px solid var(--blue);}
+.q-feedback.show{display:block;}
+
+.summary-panel{text-align:center;padding:26px;border-radius:12px;background:var(--bg-elevated);border:1px solid var(--border);}
+.summary-panel .score-big{font-family:var(--font-mono);font-size:2.4rem;font-weight:800;background:linear-gradient(135deg,var(--purple),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+/* toast */
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--bg-elevated);border:1px solid var(--green);
+  color:var(--text-primary);padding:14px 20px;border-radius:10px;box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:10px;z-index:200;transform:translateY(140%);transition:transform .35s ease;font-size:.88rem;
+}
+.toast.show{transform:translateY(0);}
+
+/* resources */
+.res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;}
+.res-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+.res-card h4{font-size:.9rem;margin-bottom:8px;color:var(--blue);}
+.res-card ul{margin:0;padding-left:1.1em;font-size:.84rem;color:var(--text-secondary);}
+.res-card li{margin-bottom:5px;}
+.keyword-tag{display:inline-block;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:.3em .6em;margin:3px;font-family:var(--font-mono);font-size:.78rem;}
+
+.cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:720px){.cheat-grid{grid-template-columns:1fr;}}
+.cheat-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.cheat-card h4{font-family:var(--font-mono);font-size:.82rem;color:var(--purple);margin-bottom:8px;}
+
+.footer-note{text-align:center;color:var(--text-dim);font-size:.78rem;padding:30px 0;}
+
+@media print{
+  .sidebar,.topbar,.exercise,.console,.icon-btn,.quiz-card,.hamburger,#toast{display:none !important;}
+  .main{margin-left:0;}
+  .page{display:block !important;}
+  body{background:#fff;color:#000;}
+}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .hamburger{display:flex;align-items:center;justify-content:center;}
+  .content{padding:28px 18px 90px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">JS</div>
+      <div>
+        <div class="brand-name">Learning Studio</div>
+        <div class="brand-sub">core JS fundamentals</div>
+      </div>
+    </div>
+
+    <div class="nav-section-label">Course</div>
+    <div class="nav-item enabled active" data-target="intro" onclick="navigateTo('intro')">
+      <span class="ni-icon">◆</span> Introduction
+    </div>
+    <div class="nav-item enabled" data-target="module1" onclick="navigateTo('module1')">
+      <span class="ni-icon">1</span> Variables &amp; Data Types <span class="ni-score" id="score-tag-module1"></span>
+    </div>
+    <div class="nav-item locked" data-target="module2">
+      <span class="ni-icon">🔒</span> Functions <span class="ni-score" id="score-tag-module2"></span>
+    </div>
+    <div class="nav-item locked" data-target="module3">
+      <span class="ni-icon">🔒</span> Scope &amp; Closures <span class="ni-score" id="score-tag-module3"></span>
+    </div>
+    <div class="nav-item locked" data-target="module4">
+      <span class="ni-icon">🔒</span> Control Flow <span class="ni-score" id="score-tag-module4"></span>
+    </div>
+    <div class="nav-item locked" data-target="final">
+      <span class="ni-icon">🔒</span> Final Challenge &amp; Resources
+    </div>
+
+    <div class="nav-section-label">Badges earned</div>
+    <div class="badges-row">
+      <div class="badge-chip" id="badge-module1" title="Variable Virtuoso">🧩</div>
+      <div class="badge-chip" id="badge-module2" title="Function Fanatic">⚙️</div>
+      <div class="badge-chip" id="badge-module3" title="Closure Champion">🔗</div>
+      <div class="badge-chip" id="badge-module4" title="Flow Master">🚦</div>
+      <div class="badge-chip" id="badge-final" title="JS Fundamentals Graduate">🏆</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-label" id="progress-label">0% complete</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark/light mode">🌗</button>
+        <button class="icon-btn" onclick="window.print()" title="Print / save notes">🖨️</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ================= INTRO ================= -->
+      <section class="page active" id="page-intro">
+        <div class="hero">
+          <span class="eyebrow">Interactive Learning Studio</span>
+          <h1>JavaScript Core Fundamentals</h1>
+          <p style="font-size:1.02rem;max-width:640px;">Variables, functions, scope, and control flow are the four load-bearing walls of every JavaScript program you will ever write — from a ten-line script to a million-line application. This tutorial builds each wall in order, so the ones after it have something solid to stand on.</p>
+
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-num">~90 min</div><div class="stat-label">Estimated completion time</div></div>
+            <div class="stat-box"><div class="stat-num">4</div><div class="stat-label">Progressive modules</div></div>
+            <div class="stat-box"><div class="stat-num">16</div><div class="stat-label">Quiz questions</div></div>
+            <div class="stat-box"><div class="stat-num">5</div><div class="stat-label">Badges to unlock</div></div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <h3>🎯 Learning objectives</h3>
+            <p>By the end of this studio you will be able to:</p>
+            <div class="takeaways"><ul>
+              <li>Choose correctly between <code>var</code>, <code>let</code>, and <code>const</code>, and explain how JavaScript coerces types</li>
+              <li>Write functions using declarations, expressions, and arrow syntax, and know when each is the right tool</li>
+              <li>Trace exactly which variables a piece of code can "see" using scope and the scope chain</li>
+              <li>Explain what a closure is and use one to build private state</li>
+              <li>Control a program's execution path with conditionals, loops, and short-circuit logic</li>
+              <li>Combine all four pillars to build a small, working program from scratch</li>
+            </ul></div>
+          </div>
+          <div class="card">
+            <h3>🧰 Prerequisites</h3>
+            <p>None required — this module assumes zero prior JavaScript knowledge. You should be comfortable using a web browser and have seen a line of code before, even if you've never written one.</p>
+            <h3 style="margin-top:18px;">✅ Expected outcomes</h3>
+            <p>You'll finish able to read almost any beginner-to-intermediate JS snippet and correctly predict what it will output — the single most useful debugging skill there is.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>🏆 Reward system</h3>
+          <p>Every module ends with a 4-question quiz. Submitting it — regardless of score — unlocks the next module and awards a badge. Collect all five badges (four module badges + one graduate badge for the final challenge) to complete the studio. Badges appear in the sidebar and will fill in with color as you earn them.</p>
+        </div>
+
+        <div style="text-align:center;margin-top:32px;">
+          <button class="btn btn-primary" style="padding:.9em 2em;font-size:1rem;" onclick="navigateTo('module1')">Start Module 1 →</button>
+        </div>
+      </section>
+
+      <!-- ================= MODULE 1 ================= -->
+      <section class="page" id="page-module1">
+        <span class="eyebrow">Module 1 of 4 · Foundational</span>
+        <h1>Variables &amp; Data Types</h1>
+        <p>Every program is, at its core, a machine for remembering things and doing arithmetic (broadly defined) on what it remembers. Variables are how JavaScript remembers.</p>
+
+        <div class="section-title-row"><span class="section-num">1.1</span><h2>Declaring variables: var, let, const</h2></div>
+        <p>JavaScript has three keywords for creating a variable, and they were not all introduced at the same time. <code>var</code> has existed since 1995. <code>let</code> and <code>const</code> arrived in 2015 (ES6) specifically to fix problems with <code>var</code>. In modern code you should reach for <code>const</code> by default, <code>let</code> when you know the value will change, and avoid <code>var</code> entirely unless you're reading legacy code.</p>
+
+        <div class="codeblock">
+          <div class="cb-head"><span>variables.js</span><span>ES6+</span></div>
+          <pre><span class="tok-kw">const</span> siteName = <span class="tok-str">"Learning Studio"</span>;   <span class="tok-cm">// cannot be reassigned</span>
+<span class="tok-kw">let</span> score = <span class="tok-num">0</span>;                      <span class="tok-cm">// can be reassigned</span>
+score = score + <span class="tok-num">10</span>;
+<span class="tok-kw">var</span> legacyCounter = <span class="tok-num">1</span>;             <span class="tok-cm">// works, but avoid in new code</span></pre>
+        </div>
+
+        <div class="analogy-box"><span class="lbl">Analogy</span>Think of a variable as a labeled storage box. <code>const</code> is a box that gets sealed shut the moment you put something in it — you can look inside, but you can't swap the contents. <code>let</code> is a box with a lid you can open and refill as often as you like. <code>var</code> is an old warehouse crate that, confusingly, can sometimes be reached from a completely different room of the building — which is exactly the kind of surprise that gets programs into trouble.</div>
+
+        <table>
+          <tr><th>Keyword</th><th>Reassignable</th><th>Redeclarable</th><th>Scope</th><th>Hoisting behavior</th></tr>
+          <tr><td><code>var</code></td><td>Yes</td><td>Yes</td><td>Function scope</td><td>Hoisted &amp; initialized as <code>undefined</code></td></tr>
+          <tr><td><code>let</code></td><td>Yes</td><td>No</td><td>Block scope</td><td>Hoisted but in "temporal dead zone"</td></tr>
+          <tr><td><code>const</code></td><td>No</td><td>No</td><td>Block scope</td><td>Hoisted but in "temporal dead zone"</td></tr>
+        </table>
+
+        <div class="section-title-row"><span class="section-num">1.2</span><h2>Primitive vs. reference types</h2></div>
+        <p>JavaScript has seven primitive types — <code>string</code>, <code>number</code>, <code>boolean</code>, <code>undefined</code>, <code>null</code>, <code>symbol</code>, and <code>bigint</code> — plus one big catch-all reference type: <code>object</code> (which arrays and functions are special forms of). The difference matters enormously: primitives are copied by value, objects are copied by reference.</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 640 170" width="100%" style="max-width:640px;">
+            <text x="20" y="26" fill="var(--text-secondary)" font-size="12">let a = 5; let b = a; b = 10;  →  a is still 5 (copied)</text>
+            <rect x="20" y="40" width="90" height="40" rx="6" fill="var(--bg)" stroke="var(--blue)"/>
+            <text x="65" y="65" fill="var(--blue)" font-size="13" text-anchor="middle">a = 5</text>
+            <rect x="140" y="40" width="90" height="40" rx="6" fill="var(--bg)" stroke="var(--orange)"/>
+            <text x="185" y="65" fill="var(--orange)" font-size="13" text-anchor="middle">b = 10</text>
+
+            <text x="20" y="120" fill="var(--text-secondary)" font-size="12">let x = {n:5}; let y = x; y.n = 10;  →  x.n becomes 10 too (shared)</text>
+            <rect x="20" y="134" width="90" height="30" rx="6" fill="var(--bg)" stroke="var(--purple)"/>
+            <text x="65" y="154" fill="var(--purple)" font-size="12" text-anchor="middle">x —→</text>
+            <rect x="140" y="134" width="90" height="30" rx="6" fill="var(--bg)" stroke="var(--purple)"/>
+            <text x="185" y="154" fill="var(--purple)" font-size="12" text-anchor="middle">y —→</text>
+            <rect x="280" y="128" width="110" height="42" rx="6" fill="var(--bg-elevated)" stroke="var(--green)"/>
+            <text x="335" y="154" fill="var(--green)" font-size="12" text-anchor="middle">{ n: 10 }</text>
+            <line x1="110" y1="149" x2="280" y2="149" stroke="var(--purple)" stroke-width="1.5"/>
+            <line x1="230" y1="149" x2="280" y2="149" stroke="var(--purple)" stroke-width="1.5"/>
+          </svg>
+        </div>
+
+        <div class="section-title-row"><span class="section-num">1.3</span><h2>Type coercion</h2></div>
+        <p>JavaScript is dynamically and loosely typed: a variable's type is decided at runtime, and operators will often convert (coerce) operands to make an operation "work" rather than throwing an error. This is convenient and, if you don't know the rules, a constant source of bugs.</p>
+
+        <div class="exercise">
+          <span class="ex-lbl">Try it — Type Coercion Lab</span>
+          <p style="margin-bottom:10px;">Pick an expression and evaluate it to see JavaScript's actual coercion behavior, with an explanation.</p>
+          <select id="coerce-select">
+            <option value='"5" + 3'>"5" + 3</option>
+            <option value='5 + "3"'>5 + "3"</option>
+            <option value='"5" - 3'>"5" - 3</option>
+            <option value='true + true'>true + true</option>
+            <option value='"5" == 5'>"5" == 5</option>
+            <option value='"5" === 5'>"5" === 5</option>
+            <option value='0 == false'>0 == false</option>
+            <option value='null == undefined'>null == undefined</option>
+            <option value='[] + []'>[] + []</option>
+            <option value='[] + {}'>[] + {}</option>
+          </select>
+          <button class="btn btn-sm" onclick="runCoercion()">Evaluate ▶</button>
+          <div class="console" style="margin-top:12px;">
+            <div class="c-head"><span class="c-dot" style="background:var(--red)"></span><span class="c-dot" style="background:var(--orange)"></span><span class="c-dot" style="background:var(--green)"></span></div>
+            <div class="c-body" id="coerce-output">// pick an expression and click Evaluate</div>
+          </div>
+        </div>
+
+        <div class="misconception-box"><span class="lbl">Common misconception</span>"<code>==</code> and <code>===</code> are interchangeable." They're not: <code>==</code> coerces types before comparing, <code>===</code> does not. Default to <code>===</code> unless you have a specific reason to coerce.</div>
+        <div class="misconception-box"><span class="lbl">Common misconception</span>"<code>const</code> means the value can never change." It means the <em>binding</em> can't be reassigned. <code>const arr = [1,2]; arr.push(3);</code> is completely legal — the array's contents changed, but <code>arr</code> still points at the same array.</div>
+
+        <div class="takeaways"><h4 style="margin-top:0;">Key takeaways</h4><ul>
+          <li>Use <code>const</code> by default, <code>let</code> when reassignment is needed, and avoid <code>var</code></li>
+          <li>Primitives copy by value; objects/arrays copy by reference</li>
+          <li><code>===</code> is almost always the right choice over <code>==</code></li>
+          <li><code>const</code> prevents reassignment, not mutation</li>
+        </ul></div>
+
+        <div id="quiz1-mount"></div>
+      </section>
+
+      <!-- ================= MODULE 2 ================= -->
+      <section class="page" id="page-module2">
+        <span class="eyebrow">Module 2 of 4 · Building blocks</span>
+        <h1>Functions</h1>
+        <p>A function is a reusable block of instructions. Once you can bundle logic into functions, you stop repeating yourself and start building programs out of well-named pieces.</p>
+
+        <div class="section-title-row"><span class="section-num">2.1</span><h2>Three ways to write a function</h2></div>
+        <div class="codeblock">
+          <div class="cb-head"><span>functions.js</span><span>three forms</span></div>
+          <pre><span class="tok-cm">// 1. Function declaration — hoisted, callable before it's defined</span>
+<span class="tok-kw">function</span> <span class="tok-fn">greet</span>(name) {
+  <span class="tok-kw">return</span> <span class="tok-str">`Hello, ${name}!`</span>;
+}
+
+<span class="tok-cm">// 2. Function expression — stored in a variable, NOT hoisted the same way</span>
+<span class="tok-kw">const</span> <span class="tok-fn">farewell</span> = <span class="tok-kw">function</span>(name) {
+  <span class="tok-kw">return</span> <span class="tok-str">`Goodbye, ${name}!`</span>;
+};
+
+<span class="tok-cm">// 3. Arrow function — concise, inherits `this` from surrounding scope</span>
+<span class="tok-kw">const</span> <span class="tok-fn">shout</span> = (name) =&gt; <span class="tok-str">`${name.toUpperCase()}!`</span>;</pre>
+        </div>
+
+        <div class="analogy-box"><span class="lbl">Analogy</span>A function is a vending machine: you insert specific inputs (parameters), an internal process runs out of view, and a product comes out (the return value). Arrow functions are the same machine with a slimmer chassis — same product, less packaging — but with one real difference: they don't have their own <code>this</code>, they borrow it from whatever room (scope) they were built in.</div>
+
+        <table>
+          <tr><th>Form</th><th>Hoisted?</th><th>Has own <code>this</code>?</th><th>Best for</th></tr>
+          <tr><td>Declaration</td><td>Fully</td><td>Yes</td><td>Named, reusable, top-level functions</td></tr>
+          <tr><td>Expression</td><td>No (var-hoisting only)</td><td>Yes</td><td>Conditionally defined functions</td></tr>
+          <tr><td>Arrow</td><td>No</td><td>No — inherits</td><td>Short callbacks, preserving <code>this</code></td></tr>
+        </table>
+
+        <div class="section-title-row"><span class="section-num">2.2</span><h2>Parameters, defaults &amp; rest</h2></div>
+        <div class="codeblock"><pre><span class="tok-kw">function</span> <span class="tok-fn">makeOrder</span>(item, qty = <span class="tok-num">1</span>, ...extras) {
+  <span class="tok-kw">return</span> <span class="tok-str">`${qty}x ${item} with [${extras.join(", ")}]`</span>;
+}
+makeOrder(<span class="tok-str">"Taco"</span>);                          <span class="tok-cm">// "1x Taco with []"</span>
+makeOrder(<span class="tok-str">"Taco"</span>, <span class="tok-num">3</span>, <span class="tok-str">"salsa"</span>, <span class="tok-str">"lime"</span>);        <span class="tok-cm">// "3x Taco with [salsa, lime]"</span></pre></div>
+        <p><code>qty = 1</code> is a default parameter, only used when no argument (or <code>undefined</code>) is passed. <code>...extras</code> is a rest parameter that scoops up any remaining arguments into a real array.</p>
+
+        <div class="section-title-row"><span class="section-num">2.3</span><h2>Functions are first-class values</h2></div>
+        <p>In JavaScript, functions are values just like numbers or strings — you can store them, pass them into other functions, and return them from other functions. This is what powers array methods like <code>.map</code>, <code>.filter</code>, and <code>.reduce</code>.</p>
+
+        <div class="exercise">
+          <span class="ex-lbl">Try it — Function Pipeline</span>
+          <p style="margin-bottom:10px;">Chain small functions together and run a value through the pipeline, step by step, to see "functions as values" in action.</p>
+          <label><input type="checkbox" class="pipe-step" value="double" checked> double(x)</label>
+          <label><input type="checkbox" class="pipe-step" value="addTen" checked> addTen(x)</label>
+          <label><input type="checkbox" class="pipe-step" value="square"> square(x)</label>
+          &nbsp; start value: <input type="text" id="pipe-start" value="4" style="width:60px;">
+          <button class="btn btn-sm" onclick="runPipeline()">Run pipeline ▶</button>
+          <div class="console" style="margin-top:12px;">
+            <div class="c-head"><span class="c-dot" style="background:var(--red)"></span><span class="c-dot" style="background:var(--orange)"></span><span class="c-dot" style="background:var(--green)"></span></div>
+            <div class="c-body" id="pipe-output">// choose steps and run the pipeline</div>
+          </div>
+        </div>
+
+        <div class="misconception-box"><span class="lbl">Common misconception</span>"Arrow functions are just shorter syntax with no real difference." They also don't get their own <code>this</code>, don't have an <code>arguments</code> object, and can't be used as constructors — these aren't stylistic, they change behavior.</div>
+        <div class="misconception-box"><span class="lbl">Common misconception</span>"A function expression is hoisted exactly like a declaration." Only the <em>variable</em> is hoisted (as <code>undefined</code> if <code>var</code>, or into the temporal dead zone if <code>let</code>/<code>const</code>) — the function body is not available until that line runs.</div>
+
+        <div class="takeaways"><h4 style="margin-top:0;">Key takeaways</h4><ul>
+          <li>Declarations are hoisted whole; expressions and arrows are not</li>
+          <li>Arrow functions inherit <code>this</code> from their enclosing scope</li>
+          <li>Default and rest parameters make functions flexible without overloads</li>
+          <li>Functions can be passed around and returned like any other value</li>
+        </ul></div>
+
+        <div id="quiz2-mount"></div>
+      </section>
+
+      <!-- ================= MODULE 3 ================= -->
+      <section class="page" id="page-module3">
+        <span class="eyebrow">Module 3 of 4 · Where things live</span>
+        <h1>Scope &amp; Closures</h1>
+        <p>Scope answers one question: from this exact line of code, which variables can I see? Get comfortable with scope and closures stop being magic and become a tool you reach for on purpose.</p>
+
+        <div class="section-title-row"><span class="section-num">3.1</span><h2>Global, function &amp; block scope</h2></div>
+        <p>JavaScript looks a variable up starting from where it's used, then walks outward through each enclosing scope until it finds it (or runs out of scopes and throws). This chain of "ask here, then ask the parent" is the scope chain.</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 640 240" width="100%" style="max-width:640px;">
+            <rect x="10" y="10" width="620" height="220" rx="10" fill="var(--bg)" stroke="var(--purple)" stroke-width="1.5"/>
+            <text x="26" y="32" fill="var(--purple)" font-size="12">Global scope: const APP_NAME</text>
+            <rect x="40" y="46" width="560" height="160" rx="10" fill="var(--bg-panel)" stroke="var(--blue)" stroke-width="1.5"/>
+            <text x="56" y="68" fill="var(--blue)" font-size="12">Function scope (checkout): let total</text>
+            <rect x="72" y="82" width="500" height="100" rx="10" fill="var(--bg-elevated)" stroke="var(--green)" stroke-width="1.5"/>
+            <text x="88" y="104" fill="var(--green)" font-size="12">Block scope (if / for): let discount</text>
+            <text x="88" y="132" fill="var(--text-secondary)" font-size="11">discount can see total and APP_NAME</text>
+            <text x="88" y="150" fill="var(--text-secondary)" font-size="11">total can see APP_NAME, but NOT discount</text>
+            <text x="88" y="168" fill="var(--text-secondary)" font-size="11">APP_NAME cannot see total or discount</text>
+          </svg>
+        </div>
+
+        <div class="analogy-box"><span class="lbl">Analogy</span>Scope is a set of nested rooms. Standing in the innermost room, you can see everything on the table in your room, and everything in every room outside yours, all the way out to the lobby (global scope). But someone standing in the lobby has no idea what's on the table in your room — they've never been inside it.</div>
+
+        <div class="section-title-row"><span class="section-num">3.2</span><h2>Closures</h2></div>
+        <p>A closure happens when a function "remembers" the variables from the scope it was created in, even after that outer function has finished running. This isn't a special syntax — it's just how JavaScript functions always behave.</p>
+
+        <div class="codeblock"><pre><span class="tok-kw">function</span> <span class="tok-fn">makeCounter</span>() {
+  <span class="tok-kw">let</span> count = <span class="tok-num">0</span>;                 <span class="tok-cm">// private to this closure</span>
+  <span class="tok-kw">return</span> <span class="tok-kw">function</span>() {
+    count++;
+    <span class="tok-kw">return</span> count;
+  };
+}
+<span class="tok-kw">const</span> counterA = makeCounter();
+counterA();  <span class="tok-cm">// 1</span>
+counterA();  <span class="tok-cm">// 2 — count was remembered between calls</span></pre></div>
+
+        <div class="analogy-box"><span class="lbl">Analogy</span>A closure is a backpack. When a function is created, it packs a backpack with references to the variables around it. Wherever that function travels afterward — passed to another part of the program, called later, stored for years — it still has that backpack on its back.</div>
+
+        <div class="exercise">
+          <span class="ex-lbl">Try it — Closure Counter Lab</span>
+          <p style="margin-bottom:10px;">Create a real closure-based counter and watch it hold private state across calls.</p>
+          <button class="btn btn-sm" onclick="createCounter()">Create counter</button>
+          <button class="btn btn-sm" onclick="bumpCounter(1)">increment()</button>
+          <button class="btn btn-sm" onclick="bumpCounter(-1)">decrement()</button>
+          <div class="console" style="margin-top:12px;">
+            <div class="c-head"><span class="c-dot" style="background:var(--red)"></span><span class="c-dot" style="background:var(--orange)"></span><span class="c-dot" style="background:var(--green)"></span></div>
+            <div class="c-body" id="counter-output">// click "Create counter" first</div>
+          </div>
+        </div>
+
+        <div class="section-title-row"><span class="section-num">3.3</span><h2>Hoisting &amp; the classic loop bug</h2></div>
+        <p><code>var</code> is function-scoped, so a <code>var</code> declared inside a <code>for</code> loop is really just one variable shared by every iteration. <code>let</code> creates a fresh binding per iteration. This single difference is responsible for one of the most common early JS bugs.</p>
+
+        <div class="exercise">
+          <span class="ex-lbl">Try it — var vs let in a loop</span>
+          <p style="margin-bottom:10px;">Both loops schedule three callbacks with <code>setTimeout</code>. Toggle and run to see the difference.</p>
+          <button class="btn btn-sm" onclick="runLoopDemo('var')">Run with var</button>
+          <button class="btn btn-sm" onclick="runLoopDemo('let')">Run with let</button>
+          <div class="console" style="margin-top:12px;">
+            <div class="c-head"><span class="c-dot" style="background:var(--red)"></span><span class="c-dot" style="background:var(--orange)"></span><span class="c-dot" style="background:var(--green)"></span></div>
+            <div class="c-body" id="loop-output">// pick var or let</div>
+          </div>
+        </div>
+
+        <div class="misconception-box"><span class="lbl">Common misconception</span>"Closures only matter for advanced code." They quietly power event handlers, debouncing, memoization, module patterns, and React hooks — you're using them constantly, often without noticing.</div>
+        <div class="misconception-box"><span class="lbl">Common misconception</span>"Block scope applies to <code>var</code> too." It doesn't — <code>var</code> ignores <code>{ }</code> blocks entirely and only respects function boundaries.</div>
+
+        <div class="takeaways"><h4 style="margin-top:0;">Key takeaways</h4><ul>
+          <li>Scope determines visibility; the scope chain is searched from innermost to outermost</li>
+          <li>A closure is a function plus the variables it remembers from its birth scope</li>
+          <li><code>let</code>/<code>const</code> create a new binding per loop iteration; <code>var</code> does not</li>
+          <li><code>let</code>/<code>const</code> exist in a "temporal dead zone" before their declaration line runs</li>
+        </ul></div>
+
+        <div id="quiz3-mount"></div>
+      </section>
+
+      <!-- ================= MODULE 4 ================= -->
+      <section class="page" id="page-module4">
+        <span class="eyebrow">Module 4 of 4 · Mastery &amp; application</span>
+        <h1>Control Flow</h1>
+        <p>Control flow is how a program makes decisions and repeats work. Combined with variables, functions, and scope, it's the last piece needed to write real, useful programs.</p>
+
+        <div class="section-title-row"><span class="section-num">4.1</span><h2>Conditionals &amp; truthy/falsy</h2></div>
+        <p>JavaScript only has six falsy values: <code>false</code>, <code>0</code>, <code>""</code>, <code>null</code>, <code>undefined</code>, and <code>NaN</code>. Every other value — including <code>"0"</code>, <code>[]</code>, and <code>{}</code> — is truthy.</p>
+
+        <div class="analogy-box"><span class="lbl">Analogy</span>An <code>if</code> statement is a bouncer at a club door. It doesn't check for a specific guest list; it just asks "is this truthy?" The falsy six are permanently turned away. Everything else — even an empty array, which feels like it should be "nothing" — gets waved straight in.</div>
+
+        <div class="exercise">
+          <span class="ex-lbl">Try it — Truthy / Falsy Sorter</span>
+          <p style="margin-bottom:10px;">Click each value and sort it into the correct bin. Feedback is instant.</p>
+          <div id="sorter-chips"></div>
+          <p style="margin-top:8px;font-size:.82rem;" id="sorter-status">0 / 8 sorted correctly</p>
+        </div>
+
+        <div class="section-title-row"><span class="section-num">4.2</span><h2>Loops: for, while, for...of, for...in</h2></div>
+        <table>
+          <tr><th>Loop</th><th>Best for</th><th>Watch out for</th></tr>
+          <tr><td><code>for</code></td><td>Known number of iterations, index needed</td><td>Off-by-one errors</td></tr>
+          <tr><td><code>while</code></td><td>Unknown iteration count, condition-driven</td><td>Forgetting to update the condition → infinite loop</td></tr>
+          <tr><td><code>for...of</code></td><td>Iterating values of arrays/strings/maps</td><td>Doesn't give you an index directly</td></tr>
+          <tr><td><code>for...in</code></td><td>Iterating keys of a plain object</td><td>Should not be used on arrays</td></tr>
+        </table>
+
+        <div class="section-title-row"><span class="section-num">4.3</span><h2>Short-circuit logic: &amp;&amp;, ||, ??</h2></div>
+        <div class="codeblock"><pre>user.name || <span class="tok-str">"Guest"</span>;        <span class="tok-cm">// falls back on ANY falsy value, including "" or 0</span>
+user.name ?? <span class="tok-str">"Guest"</span>;        <span class="tok-cm">// falls back ONLY on null or undefined</span>
+isLoggedIn &amp;&amp; showDashboard(); <span class="tok-cm">// only runs showDashboard() if isLoggedIn is truthy</span></pre></div>
+
+        <div class="exercise">
+          <span class="ex-lbl">Try it — Flow Tracer</span>
+          <p style="margin-bottom:10px;">Enter a score (0–100) and trace which branch a grading function takes.</p>
+          <input type="text" id="flow-input" value="82" style="width:80px;"> <button class="btn btn-sm" onclick="traceFlow()">Trace ▶</button>
+          <div class="diagram" style="margin-top:12px;">
+            <svg viewBox="0 0 640 210" width="100%" style="max-width:640px;">
+              <rect id="fb-start" x="260" y="6" width="120" height="34" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="320" y="28" text-anchor="middle" font-size="11" fill="var(--text-secondary)">score input</text>
+              <rect id="fb-90" x="10" y="80" width="130" height="34" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="75" y="102" text-anchor="middle" font-size="11" fill="var(--text-secondary)">score >= 90 → "A"</text>
+              <rect id="fb-80" x="160" y="80" width="130" height="34" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="225" y="102" text-anchor="middle" font-size="11" fill="var(--text-secondary)">score >= 80 → "B"</text>
+              <rect id="fb-70" x="310" y="80" width="130" height="34" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="375" y="102" text-anchor="middle" font-size="11" fill="var(--text-secondary)">score >= 70 → "C"</text>
+              <rect id="fb-else" x="460" y="80" width="130" height="34" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="525" y="102" text-anchor="middle" font-size="11" fill="var(--text-secondary)">else → "F"</text>
+              <rect id="fb-result" x="230" y="160" width="180" height="36" rx="8" fill="var(--bg-elevated)" stroke="var(--green)"/><text id="fb-result-text" x="320" y="183" text-anchor="middle" font-size="12" fill="var(--green)">result</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="misconception-box"><span class="lbl">Common misconception</span>"<code>||</code> and <code>??</code> do the same thing." <code>||</code> triggers on any falsy value; <code>??</code> only triggers on <code>null</code>/<code>undefined</code> — so <code>0 || "default"</code> gives <code>"default"</code>, but <code>0 ?? "default"</code> gives <code>0</code>.</div>
+        <div class="misconception-box"><span class="lbl">Common misconception</span>"<code>for...in</code> is the normal way to loop over an array." It iterates keys (as strings, in unspecified order for non-integer keys) and can pick up inherited properties — use <code>for...of</code> or <code>.forEach</code> for arrays instead.</div>
+
+        <div class="takeaways"><h4 style="margin-top:0;">Key takeaways</h4><ul>
+          <li>Only six values are falsy — everything else, including <code>[]</code> and <code>{}</code>, is truthy</li>
+          <li>Pick the loop that matches your data: index-based, condition-based, or iterable-based</li>
+          <li><code>??</code> is safer than <code>||</code> when <code>0</code> or <code>""</code> are valid values</li>
+        </ul></div>
+
+        <div id="quiz4-mount"></div>
+      </section>
+
+      <!-- ================= FINAL ================= -->
+      <section class="page" id="page-final">
+        <span class="eyebrow">Final</span>
+        <h1>Final Challenge, Cheat Sheet &amp; Resources</h1>
+
+        <div class="section-title-row"><span class="section-num">★</span><h2>Final practical challenge — Build a Grade Book</h2></div>
+        <p>Combine everything: write a function <code>gradeReport(scores)</code> that takes an array of numbers and returns a string report. Use a <code>const</code>/<code>let</code> appropriately, a closure-based tally, and control flow for grade bands (A ≥ 90, B ≥ 80, C ≥ 70, else F). Your function should return a string in the exact form: <code>"3 students, average 81, grades: B, A, F"</code> (order matches input, average is rounded down with <code>Math.floor</code>).</p>
+
+        <div class="exercise">
+          <span class="ex-lbl">Challenge editor</span>
+          <textarea id="challenge-code">function gradeReport(scores) {
+  // your code here
+  // return a string like: "3 students, average 81, grades: B, A, F"
+}</textarea>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="runChallenge()">Run tests ▶</button>
+            <button class="btn btn-sm" onclick="toggleSolution()">Show / hide solution</button>
+          </div>
+          <div class="console" style="margin-top:12px;">
+            <div class="c-head"><span class="c-dot" style="background:var(--red)"></span><span class="c-dot" style="background:var(--orange)"></span><span class="c-dot" style="background:var(--green)"></span></div>
+            <div class="c-body" id="challenge-output">// write gradeReport() above, then click "Run tests"</div>
+          </div>
+          <div class="codeblock" id="challenge-solution" style="display:none;">
+            <div class="cb-head"><span>solution.js</span></div>
+            <pre><span class="tok-kw">function</span> <span class="tok-fn">gradeReport</span>(scores) {
+  <span class="tok-kw">const</span> grades = scores.map(<span class="tok-kw">function</span>(s) {
+    <span class="tok-kw">if</span> (s &gt;= <span class="tok-num">90</span>) <span class="tok-kw">return</span> <span class="tok-str">"A"</span>;
+    <span class="tok-kw">if</span> (s &gt;= <span class="tok-num">80</span>) <span class="tok-kw">return</span> <span class="tok-str">"B"</span>;
+    <span class="tok-kw">if</span> (s &gt;= <span class="tok-num">70</span>) <span class="tok-kw">return</span> <span class="tok-str">"C"</span>;
+    <span class="tok-kw">return</span> <span class="tok-str">"F"</span>;
+  });
+  <span class="tok-kw">const</span> total = scores.reduce(<span class="tok-kw">function</span>(sum, s) { <span class="tok-kw">return</span> sum + s; }, <span class="tok-num">0</span>);
+  <span class="tok-kw">const</span> avg = Math.floor(total / scores.length);
+  <span class="tok-kw">return</span> <span class="tok-str">`${scores.length} students, average ${avg}, grades: ${grades.join(<span class="tok-str">", "</span>)}`</span>;
+}</pre>
+          </div>
+        </div>
+
+        <div class="section-title-row"><span class="section-num">📋</span><h2>Cheat sheet</h2></div>
+        <div class="cheat-grid">
+          <div class="cheat-card"><h4>DECLARATIONS</h4><code>const x = 1;</code><br><code>let y = 2;</code><br><code>var z = 3; // avoid</code></div>
+          <div class="cheat-card"><h4>FUNCTIONS</h4><code>function f(a){return a;}</code><br><code>const f = function(a){return a;};</code><br><code>const f = a =&gt; a;</code></div>
+          <div class="cheat-card"><h4>SCOPE</h4>Global → Function → Block<br>Inner sees outer, not reverse<br>Closures remember birth scope</div>
+          <div class="cheat-card"><h4>CONTROL FLOW</h4><code>if / else if / else</code><br><code>for / while / for...of</code><br><code>a ?? b</code>, <code>a || b</code>, <code>a &amp;&amp; b()</code></div>
+        </div>
+
+        <div class="section-title-row"><span class="section-num">📝</span><h2>Summary notes</h2></div>
+        <div class="takeaways"><ul>
+          <li><strong>Module 1 —</strong> <code>const</code> by default, <code>let</code> when needed, never <code>var</code>; primitives copy by value, objects by reference; <code>===</code> over <code>==</code>.</li>
+          <li><strong>Module 2 —</strong> declarations are hoisted whole, expressions/arrows are not; arrows inherit <code>this</code>; functions are values.</li>
+          <li><strong>Module 3 —</strong> scope chain resolves inner-to-outer; closures let inner functions remember outer variables; <code>let</code> creates a fresh binding per loop iteration.</li>
+          <li><strong>Module 4 —</strong> only six falsy values exist; choose loops by data shape; <code>??</code> is safer than <code>||</code> for numeric/empty-string defaults.</li>
+        </ul></div>
+
+        <div class="section-title-row"><span class="section-num">🚀</span><h2>Continue learning</h2></div>
+        <div class="res-grid">
+          <div class="res-card"><h4>📚 Books</h4><ul>
+            <li>Eloquent JavaScript — Marijn Haverbeke</li>
+            <li>You Don't Know JS (series) — Kyle Simpson</li>
+            <li>JavaScript: The Definitive Guide — David Flanagan</li>
+          </ul></div>
+          <div class="res-card"><h4>📖 Documentation</h4><ul>
+            <li>MDN Web Docs — JavaScript Guide</li>
+            <li>MDN — JavaScript Reference</li>
+            <li>TC39 proposals repository</li>
+          </ul></div>
+          <div class="res-card"><h4>📄 Specifications &amp; papers</h4><ul>
+            <li>ECMA-262: ECMAScript Language Specification</li>
+            <li>"An Analysis of the Dynamic Behavior of JavaScript Programs" (Richards et al.)</li>
+          </ul></div>
+          <div class="res-card"><h4>👥 Communities</h4><ul>
+            <li>r/javascript, r/learnjavascript</li>
+            <li>Stack Overflow (javascript tag)</li>
+            <li>freeCodeCamp forum &amp; Discord</li>
+          </ul></div>
+          <div class="res-card"><h4>💻 Practice platforms</h4><ul>
+            <li>freeCodeCamp</li>
+            <li>Codewars</li>
+            <li>JavaScript30 (Wes Bos)</li>
+            <li>Exercism — JavaScript track</li>
+          </ul></div>
+          <div class="res-card"><h4>🔎 Search keywords</h4>
+            <span class="keyword-tag">let vs var vs const</span>
+            <span class="keyword-tag">JS closures explained</span>
+            <span class="keyword-tag">scope chain JavaScript</span>
+            <span class="keyword-tag">truthy falsy values JS</span>
+            <span class="keyword-tag">hoisting temporal dead zone</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <h4>🤖 Prompts to keep learning with Claude</h4>
+          <div class="takeaways"><ul>
+            <li>"Give me 5 JavaScript snippets and quiz me on what each one logs to the console."</li>
+            <li>"Explain the JavaScript event loop using the same nested-rooms analogy style as scope."</li>
+            <li>"Review this function I wrote and tell me where I could use a closure instead of a global variable."</li>
+            <li>"Walk me through building a small to-do list app, explaining every scope and closure decision as we go."</li>
+          </ul></div>
+        </div>
+
+        <div style="text-align:center;margin-top:28px;">
+          <button class="btn btn-primary" style="padding:.9em 2em;" onclick="completeCourse()">Mark studio complete 🏆</button>
+        </div>
+
+        <p class="footer-note">Interactive Learning Studio — generated for focused, single-session mastery of JavaScript Core Fundamentals.</p>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ STATE ============ */
+const state = {
+  unlocked: {intro:true, module1:true, module2:false, module3:false, module4:false, final:false},
+  scores: {module1:null, module2:null, module3:null, module4:null},
+  order: ['intro','module1','module2','module3','module4','final']
+};
+
+function navigateTo(id){
+  if(!state.unlocked[id]) return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const item = document.querySelector('.nav-item[data-target="'+id+'"]');
+  if(item) item.classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo(0,0);
+  updateProgress();
+}
+
+function unlock(id){
+  state.unlocked[id] = true;
+  const item = document.querySelector('.nav-item[data-target="'+id+'"]');
+  if(item){
+    item.classList.remove('locked');
+    item.classList.add('enabled');
+    item.querySelector('.ni-icon').textContent = state.order.indexOf(id) === 5 ? '★' : state.order.indexOf(id);
+    item.setAttribute('onclick', "navigateTo('"+id+"')");
+  }
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = state.order.length;
+  const done = state.order.filter(id=>state.unlocked[id]).length;
+  const pct = Math.round((done/total)*100);
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('progress-label').textContent = pct+'% complete';
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+function toggleTheme(){
+  document.body.classList.toggle('light');
+}
+
+/* ============ QUIZ ENGINE ============ */
+const quizData = {
+  module1: [
+    {q:"Which keyword should you avoid using in new code because it ignores block scope?", opts:["let","const","var","function"], correct:2, exp:"var is function-scoped (not block-scoped) and can lead to surprising bugs, which is why let/const replaced it in modern code."},
+    {q:'What does "5" + 3 evaluate to?', opts:['8','"53"','NaN','Error'], correct:1, exp:'The + operator sees a string operand, so it coerces 3 to "3" and concatenates: "5" + "3" = "53".'},
+    {q:"Which statement about const is TRUE?", opts:["const values can never change in any way","const prevents the array/object contents from changing","const only prevents reassigning the variable itself","const works exactly like let"], correct:2, exp:"const locks the binding, not the value — you can still mutate an array or object stored in a const variable."},
+    {q:"Which of these is a reference type, not a primitive?", opts:["42","true","undefined","[1, 2, 3]"], correct:3, exp:"Arrays (and objects in general) are reference types — copied and compared by reference, unlike the primitives listed."}
+  ],
+  module2: [
+    {q:"Which function form is fully hoisted, meaning it can be called before its line of code runs?", opts:["Function declaration","Function expression","Arrow function","None of these"], correct:0, exp:"Function declarations are hoisted with their entire body, so they can be called earlier in the same scope."},
+    {q:"What makes arrow functions different from regular functions regarding `this`?", opts:["They can't use this at all","They create their own this like regular functions","They inherit this from their enclosing scope","this is always undefined"], correct:2, exp:"Arrow functions don't bind their own this — they use the this value from the scope where they were defined."},
+    {q:"function greet(name = \"friend\") {...} — what happens if you call greet() with no arguments?", opts:['name becomes undefined','name becomes "friend"','It throws an error','name becomes null'], correct:1, exp:"Default parameters kick in whenever the argument is missing or explicitly undefined."},
+    {q:"Which best describes 'functions are first-class values' in JavaScript?", opts:["Functions run faster than other code","Functions can be stored in variables, passed as arguments, and returned from other functions","Only built-in functions are first-class","Functions cannot be nested"], correct:1, exp:"First-class functions can be treated like any other value — stored, passed around, and returned — which is what enables callbacks and higher-order functions."}
+  ],
+  module3: [
+    {q:"From inside a block, which variables can you access?", opts:["Only variables declared in that exact block","Variables in that block plus every enclosing scope","Only global variables","No variables at all"], correct:1, exp:"Scope lookup walks outward: a block can see its own variables plus everything in its enclosing scopes, following the scope chain."},
+    {q:"What is a closure?", opts:["A syntax error in JavaScript","A function that remembers variables from the scope it was created in","A loop that never ends","A type of object literal"], correct:1, exp:"A closure is simply a function paired with references to the variables from its birth scope, accessible even after that outer function has returned."},
+    {q:"Why does using let (instead of var) fix the classic 'loop variable in setTimeout' bug?", opts:["let is faster than var","let creates a brand new binding for each loop iteration", "let automatically calls the function immediately","It doesn't actually fix anything"], correct:1, exp:"Each iteration of a let-based loop gets its own fresh binding, so each closure captures a different value instead of sharing one final value."},
+    {q:"What is the 'temporal dead zone'?", opts:["The time before a let/const variable's declaration line runs, where accessing it throws an error","A deprecated JavaScript feature","The scope outside any function","A synonym for undefined"], correct:0, exp:"let and const are hoisted but not initialized until their declaration line executes — accessing them before that throws a ReferenceError."}
+  ],
+  module4: [
+    {q:"Which of these values is truthy?", opts:['""','0','[]','null'], correct:2, exp:"An empty array is an object, and all objects (even empty ones) are truthy — only the falsy six (false, 0, '', null, undefined, NaN) are falsy."},
+    {q:"Which loop is best for iterating the values of an array?", opts:["for...in","for...of","Neither works on arrays","Only .forEach works"], correct:1, exp:"for...of iterates values directly and is the recommended choice for arrays; for...in iterates keys and is meant for plain objects."},
+    {q:"What does 0 ?? \"default\" evaluate to?", opts:['"default"','0','undefined','Error'], correct:1, exp:"?? (nullish coalescing) only falls back on null or undefined — since 0 is neither, it's returned as-is."},
+    {q:"In `isLoggedIn && renderDashboard()`, when does renderDashboard() run?", opts:["Always","Only if isLoggedIn is truthy","Only if isLoggedIn is falsy","Never"], correct:1, exp:"&& short-circuits: the right-hand side only executes if the left-hand side is truthy."}
+  ]
+};
+
+const badgeNames = {module1:'Variable Virtuoso', module2:'Function Fanatic', module3:'Closure Champion', module4:'Flow Master'};
+const nextModule = {module1:'module2', module2:'module3', module3:'module4', module4:'final'};
+
+function buildQuiz(moduleKey){
+  const data = quizData[moduleKey];
+  const mount = document.getElementById('quiz'+moduleKey.slice(-1)+'-mount');
+  let html = '<div class="quiz-card"><h3>📝 Module check — 4 questions</h3><p style="font-size:.85rem;">Pick an answer for each question, then submit to see your score and unlock the next module.</p>';
+  data.forEach((item, qi)=>{
+    html += '<div class="quiz-q" data-qi="'+qi+'"><div class="qtext">'+(qi+1)+'. '+item.q+'</div>';
+    item.opts.forEach((opt, oi)=>{
+      html += '<label class="q-opt" data-oi="'+oi+'"><input type="radio" name="'+moduleKey+'-q'+qi+'" value="'+oi+'" onclick="pickAnswer(\''+moduleKey+'\','+qi+','+oi+')"> <span>'+opt+'</span></label>';
+    });
+    html += '<div class="q-feedback" id="'+moduleKey+'-fb-'+qi+'"></div></div>';
+  });
+  html += '<button class="btn btn-primary" id="'+moduleKey+'-submit" onclick="submitQuiz(\''+moduleKey+'\')">Submit quiz</button>';
+  html += '<div class="summary-panel" style="display:none;margin-top:18px;" id="'+moduleKey+'-summary"></div>';
+  html += '</div>';
+  mount.innerHTML = html;
+}
+
+const answers = {};
+function pickAnswer(moduleKey, qi, oi){
+  answers[moduleKey+'-'+qi] = oi;
+  const qDiv = document.querySelector('#page-'+moduleKey+' .quiz-q[data-qi="'+qi+'"]');
+  qDiv.querySelectorAll('.q-opt').forEach(el=>el.classList.remove('picked'));
+  qDiv.querySelector('.q-opt[data-oi="'+oi+'"]').classList.add('picked');
+}
+
+function submitQuiz(moduleKey){
+  const data = quizData[moduleKey];
+  let score = 0;
+  let allAnswered = true;
+  data.forEach((item, qi)=>{
+    if(answers[moduleKey+'-'+qi] === undefined) allAnswered = false;
+  });
+  if(!allAnswered){ showToast('⚠️ Answer every question before submitting'); return; }
+
+  data.forEach((item, qi)=>{
+    const picked = answers[moduleKey+'-'+qi];
+    const qDiv = document.querySelector('#page-'+moduleKey+' .quiz-q[data-qi="'+qi+'"]');
+    const opts = qDiv.querySelectorAll('.q-opt');
+    opts.forEach((el,oi)=>{
+      el.querySelector('input').disabled = true;
+      if(oi === item.correct) el.classList.add('right');
+      else if(oi === picked) el.classList.add('wrong');
+    });
+    if(picked === item.correct) score++;
+    const fb = document.getElementById(moduleKey+'-fb-'+qi);
+    fb.textContent = (picked === item.correct ? '✅ Correct — ' : '❌ Not quite — ') + item.exp;
+    fb.classList.add('show');
+  });
+
+  document.getElementById(moduleKey+'-submit').disabled = true;
+  const summary = document.getElementById(moduleKey+'-summary');
+  summary.style.display = 'block';
+  summary.innerHTML = '<div class="score-big">'+score+' / 4</div><p style="margin-top:8px;">'+
+    (score===4 ? 'Perfect score! You have mastered this module.' : score>=2 ? 'Solid work — review the explanations above for anything you missed.' : 'Good effort — consider rereading the module before moving on.') +
+    '</p><button class="btn btn-primary" style="margin-top:10px;" onclick="finishModule(\''+moduleKey+'\','+score+')">Continue →</button>';
+
+  state.scores[moduleKey] = score;
+  document.getElementById('score-tag-'+moduleKey).textContent = score+'/4';
+}
+
+function finishModule(moduleKey, score){
+  const badge = document.getElementById('badge-'+moduleKey);
+  badge.classList.add('earned');
+  const item = document.querySelector('.nav-item[data-target="'+moduleKey+'"]');
+  item.classList.add('done');
+  const nxt = nextModule[moduleKey];
+  unlock(nxt);
+  showToast('🏅 '+badgeNames[moduleKey]+' badge earned! Next section unlocked.');
+  navigateTo(nxt);
+}
+
+['module1','module2','module3','module4'].forEach(buildQuiz);
+
+/* ============ MODULE 1: type coercion lab ============ */
+function runCoercion(){
+  const expr = document.getElementById('coerce-select').value;
+  const out = document.getElementById('coerce-output');
+  const explanations = {
+    '"5" + 3': 'String + number → number coerced to string, then concatenated.',
+    '5 + "3"': 'Same rule regardless of operand order: result is "53".',
+    '"5" - 3': 'The - operator has no string meaning, so "5" is coerced to a number: 5 - 3 = 2.',
+    'true + true': 'Booleans coerce to 1/0 in arithmetic: 1 + 1 = 2.',
+    '"5" == 5': '== coerces types before comparing, so "5" becomes 5, and 5 == 5 is true.',
+    '"5" === 5': '=== never coerces — different types are automatically not equal.',
+    '0 == false': 'false coerces to 0 for ==, so 0 == 0 is true.',
+    'null == undefined': 'A special-cased rule: null and undefined are loosely equal to each other, and nothing else.',
+    '[] + []': 'Both arrays are coerced to strings ("") and concatenated: "" + "" = "".',
+    '[] + {}': '[] becomes "", {} becomes "[object Object]", concatenated together.'
+  };
+  let result;
+  try{ result = Function('"use strict"; return ('+expr+')')(); }catch(e){ result = 'Error: '+e.message; }
+  out.innerHTML = '<span class="tok-fn">&gt;</span> '+expr+'\\n<span style="color:var(--orange)">⇒ '+JSON.stringify(result)+'</span>\\n<span class="out-comment">// '+explanations[expr]+'</span>';
+}
+
+/* ============ MODULE 2: pipeline ============ */
+function runPipeline(){
+  const steps = Array.from(document.querySelectorAll('.pipe-step:checked')).map(c=>c.value);
+  const fns = {
+    double: x=>x*2,
+    addTen: x=>x+10,
+    square: x=>x*x
+  };
+  let val = Number(document.getElementById('pipe-start').value) || 0;
+  const out = document.getElementById('pipe-output');
+  if(steps.length===0){ out.textContent = '// select at least one step'; return; }
+  let log = 'start = '+val+'\\n';
+  steps.forEach(s=>{
+    const before = val;
+    val = fns[s](val);
+    log += s+'('+before+') → '+val+'\\n';
+  });
+  log += '<span style="color:var(--orange)">final result = '+val+'</span>';
+  out.innerHTML = log;
+}
+
+/* ============ MODULE 3: closure counter ============ */
+let counterFn = null;
+function createCounter(){
+  let count = 0; // this is the variable the closure remembers
+  counterFn = function(delta){ count += delta; return count; };
+  document.getElementById('counter-output').innerHTML = '// closure created — private "count" variable now lives only inside this function\\n<span style="color:var(--orange)">count = 0</span>';
+}
+function bumpCounter(delta){
+  const out = document.getElementById('counter-output');
+  if(!counterFn){ out.textContent = '// click "Create counter" first'; return; }
+  const val = counterFn(delta);
+  out.innerHTML += '\\n'+(delta>0?'increment()':'decrement()')+' → <span style="color:var(--orange)">count = '+val+'</span>';
+}
+
+function runLoopDemo(kind){
+  const out = document.getElementById('loop-output');
+  out.innerHTML = 'Scheduling 3 callbacks with '+kind+'...\\n';
+  if(kind==='var'){
+    for(var i=0;i<3;i++){
+      (function(idx){
+        setTimeout(function(){
+          out.innerHTML += 'callback fired → i = <span style="color:var(--red)">'+ i +'</span> (all three share ONE i)\\n';
+        }, (idx+1)*300);
+      })(i);
+    }
+  } else {
+    for(let i=0;i<3;i++){
+      setTimeout(function(){
+        out.innerHTML += 'callback fired → i = <span style="color:var(--green)">'+ i +'</span> (each got its own i)\\n';
+      }, (i+1)*300);
+    }
+  }
+}
+
+/* ============ MODULE 4: truthy/falsy sorter ============ */
+const sorterValues = [
+  {v:'0', truthy:false}, {v:'"0"', truthy:true}, {v:'""', truthy:false}, {v:'[]', truthy:true},
+  {v:'null', truthy:false}, {v:'undefined', truthy:false}, {v:'NaN', truthy:false}, {v:'{}', truthy:true}
+];
+let sorterCorrect = 0;
+function buildSorter(){
+  const mount = document.getElementById('sorter-chips');
+  let html = '';
+  sorterValues.forEach((item, i)=>{
+    html += '<span class="chip" data-i="'+i+'" onclick="sortChip('+i+', true)">'+item.v+' → Truthy?</span>';
+  });
+  mount.innerHTML = html + '<p style="font-size:.78rem;color:var(--text-dim);margin-top:8px;">Click a chip: first click guesses "truthy". Correct guesses turn green; incorrect turn red and reveal the answer.</p>';
+}
+function sortChip(i){
+  const item = sorterValues[i];
+  const el = document.querySelector('.chip[data-i="'+i+'"]');
+  if(el.classList.contains('disabled')) return;
+  el.classList.add('disabled');
+  if(item.truthy){ el.classList.add('correct'); el.textContent = item.v+' → Truthy ✓'; sorterCorrect++; }
+  else{ el.classList.add('incorrect'); el.textContent = item.v+' → Falsy (not truthy)'; }
+  document.getElementById('sorter-status').textContent = sorterCorrect+' / 8 correctly identified as truthy so far — '+ (8-document.querySelectorAll('.chip.disabled').length) +' remaining';
+}
+buildSorter();
+
+function traceFlow(){
+  const score = Number(document.getElementById('flow-input').value);
+  ['fb-90','fb-80','fb-70','fb-else'].forEach(id=>document.getElementById(id).setAttribute('stroke','var(--border)'));
+  let grade, target;
+  if(score>=90){grade='A';target='fb-90';}
+  else if(score>=80){grade='B';target='fb-80';}
+  else if(score>=70){grade='C';target='fb-70';}
+  else {grade='F';target='fb-else';}
+  document.getElementById(target).setAttribute('stroke','var(--green)');
+  document.getElementById(target).setAttribute('stroke-width','3');
+  document.getElementById('fb-result-text').textContent = 'score '+score+' → grade '+grade;
+}
+
+/* ============ FINAL CHALLENGE ============ */
+function runChallenge(){
+  const code = document.getElementById('challenge-code').value;
+  const out = document.getElementById('challenge-output');
+  let userFn;
+  try{
+    userFn = Function('"use strict"; '+code+'; return gradeReport;')();
+  }catch(e){
+    out.innerHTML = '<span class="out-error">Syntax error: '+e.message+'</span>';
+    return;
+  }
+  const tests = [
+    {input:[95,82,60], expected:'3 students, average 79, grades: A, B, F'},
+    {input:[100], expected:'1 students, average 100, grades: A'},
+    {input:[72,73], expected:'2 students, average 72, grades: C, C'}
+  ];
+  let log = '';
+  let passed = 0;
+  tests.forEach((t,i)=>{
+    let actual;
+    try{ actual = userFn(t.input); }catch(e){ actual = 'Error: '+e.message; }
+    const ok = actual === t.expected;
+    if(ok) passed++;
+    log += (ok?'✅':'❌')+' Test '+(i+1)+': gradeReport('+JSON.stringify(t.input)+')\\n   expected: '+t.expected+'\\n   actual:   '+actual+'\\n\\n';
+  });
+  log += passed===tests.length ? '<span style="color:var(--green)">All '+tests.length+' tests passed! 🎉</span>' : '<span style="color:var(--orange)">'+passed+'/'+tests.length+' tests passed — keep iterating.</span>';
+  out.innerHTML = log;
+}
+function toggleSolution(){
+  const sol = document.getElementById('challenge-solution');
+  sol.style.display = sol.style.display === 'none' ? 'block' : 'none';
+}
+
+function completeCourse(){
+  document.getElementById('badge-final').classList.add('earned');
+  state.unlocked.final = true;
+  updateProgress();
+  showToast('🏆 JS Fundamentals Graduate badge earned! Studio complete.');
+}
+
+updateProgress();
+</script>
+</body>
+</html>
