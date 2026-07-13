@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Workflow Architect — SaaS Build Pipeline</title>
+<style>
+:root{
+  --bg:#0D1117;
+  --bg-raised:#161B22;
+  --bg-inset:#0A0D12;
+  --line:#2A3140;
+  --text:#E6EDF3;
+  --muted:#8B949E;
+  --faint:#5C6472;
+  --blue:#58A6FF;
+  --amber:#F0883E;
+  --green:#3FB950;
+  --red:#F85149;
+  --purple:#BC8CFF;
+  --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius: 10px;
+}
+[data-theme="light"]{
+  --bg:#F6F8FA;
+  --bg-raised:#FFFFFF;
+  --bg-inset:#EDF0F3;
+  --line:#D0D7DE;
+  --text:#1F2328;
+  --muted:#57606A;
+  --faint:#8B949E;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.5;
+  transition:background .3s ease, color .3s ease;
+  -webkit-font-smoothing:antialiased;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+a{color:var(--blue);}
+::selection{background:var(--blue); color:#0D1117;}
+
+/* ===== Scrollbar / branch rail ===== */
+.rail{
+  position:fixed; left:0; top:0; bottom:0; width:56px;
+  background:var(--bg-inset); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; align-items:center; padding:20px 0; gap:18px;
+  z-index:50; overflow-y:auto;
+}
+.rail::-webkit-scrollbar{width:0;}
+.rail-dot{
+  width:12px;height:12px;border-radius:50%;
+  border:2px solid var(--faint); background:transparent;
+  cursor:pointer; transition:all .2s ease; flex-shrink:0;
+}
+.rail-dot.done{background:var(--green); border-color:var(--green);}
+.rail-dot.active{border-color:var(--blue); box-shadow:0 0 0 4px rgba(88,166,255,.18);}
+.rail-line{width:2px; flex:1; background:var(--line); min-height:6px;}
+.rail-top-icon{font-family:var(--mono); font-size:11px; color:var(--faint); writing-mode:vertical-rl; margin-bottom:8px;}
+
+body{padding-left:56px;}
+@media (max-width:760px){
+  .rail{display:none;}
+  body{padding-left:0;}
+}
+
+/* ===== Top bar ===== */
+.topbar{
+  position:sticky; top:0; z-index:40;
+  background:rgba(13,17,23,.9);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 24px;
+}
+[data-theme="light"] .topbar{background:rgba(246,248,250,.9);}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-weight:600; letter-spacing:.5px;}
+.brand .dotpulse{width:9px;height:9px;border-radius:50%;background:var(--green); box-shadow:0 0 0 0 rgba(63,185,80,.6); animation:pulse 2s infinite;}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(63,185,80,.5);}
+  70%{box-shadow:0 0 0 8px rgba(63,185,80,0);}
+  100%{box-shadow:0 0 0 0 rgba(63,185,80,0);}
+}
+.topbar-actions{display:flex; gap:8px; align-items:center;}
+.btn{
+  font-family:var(--sans); font-size:13px; font-weight:500;
+  background:var(--bg-raised); color:var(--text); border:1px solid var(--line);
+  padding:8px 14px; border-radius:8px; cursor:pointer; transition:all .15s ease;
+  display:flex; align-items:center; gap:6px;
+}
+.btn:hover{border-color:var(--blue); color:var(--blue);}
+.btn.primary{background:var(--blue); color:#0D1117; border-color:var(--blue); font-weight:600;}
+.btn.primary:hover{background:#71b4ff; color:#0D1117;}
+.btn:focus-visible, .rail-dot:focus-visible, input:focus-visible, textarea:focus-visible, .tab:focus-visible{
+  outline:2px solid var(--blue); outline-offset:2px;
+}
+
+/* ===== Hero ===== */
+.hero{
+  padding:64px 32px 48px; max-width:980px; margin:0 auto; position:relative;
+}
+.hero-eyebrow{
+  font-family:var(--mono); font-size:12px; color:var(--amber); letter-spacing:1.5px; text-transform:uppercase;
+  display:flex; align-items:center; gap:8px; margin-bottom:18px;
+}
+.hero-eyebrow::before{content:"$"; color:var(--green);}
+.hero h1{
+  font-family:var(--mono); font-size:clamp(28px,5vw,52px); line-height:1.15; font-weight:700;
+  margin-bottom:18px; letter-spacing:-.5px;
+}
+.hero h1 .accent{color:var(--blue);}
+.hero p.lede{font-size:17px; color:var(--muted); max-width:640px; margin-bottom:28px;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:34px;}
+.pill{
+  font-family:var(--mono); font-size:12px; padding:5px 12px; border-radius:20px;
+  border:1px solid var(--line); color:var(--muted); background:var(--bg-raised);
+}
+.hero-cmd{
+  background:var(--bg-inset); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px 20px; font-family:var(--mono); font-size:13px; color:var(--muted);
+  overflow-x:auto; white-space:nowrap;
+}
+.hero-cmd .prompt{color:var(--green);}
+.hero-cmd .cursor{display:inline-block; width:7px; height:14px; background:var(--blue); vertical-align:middle; animation:blink 1s steps(2) infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+/* progress ring */
+.progress-wrap{display:flex; align-items:center; gap:16px; margin-top:30px;}
+.progress-track{flex:1; height:6px; background:var(--bg-inset); border-radius:6px; overflow:hidden; border:1px solid var(--line);}
+.progress-fill{height:100%; background:linear-gradient(90deg,var(--green),var(--blue)); width:0%; transition:width .4s ease;}
+.progress-label{font-family:var(--mono); font-size:12px; color:var(--muted); white-space:nowrap;}
+
+section{max-width:980px; margin:0 auto; padding:0 32px;}
+.section-head{margin:64px 0 28px;}
+.section-head .tag{font-family:var(--mono); font-size:12px; color:var(--blue); letter-spacing:1px; text-transform:uppercase;}
+.section-head h2{font-size:clamp(22px,3vw,30px); margin-top:6px; font-weight:700;}
+.section-head p{color:var(--muted); margin-top:8px; max-width:640px;}
+
+/* ===== Decision tree ===== */
+.tree{
+  background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius);
+  padding:28px; font-family:var(--sans);
+}
+.tree-q{font-weight:600; margin-bottom:14px; display:flex; gap:10px; align-items:baseline;}
+.tree-q .qnum{font-family:var(--mono); color:var(--amber); font-size:13px;}
+.tree-opts{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;}
+@media (max-width:600px){.tree-opts{grid-template-columns:1fr;}}
+.tree-opt{
+  background:var(--bg-inset); border:1px solid var(--line); border-radius:8px; padding:12px 14px;
+  cursor:pointer; font-size:14px; transition:all .15s ease;
+}
+.tree-opt:hover{border-color:var(--blue);}
+.tree-opt.chosen{border-color:var(--green); background:rgba(63,185,80,.08);}
+.tree-result{
+  margin-top:18px; padding:16px; border-radius:8px; border:1px dashed var(--line);
+  font-size:14px; color:var(--muted); display:none;
+}
+.tree-result.show{display:block;}
+.tree-result strong{color:var(--text);}
+
+/* ===== Stage cards / accordion ===== */
+.stage{
+  background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius);
+  margin-bottom:16px; overflow:hidden;
+}
+.stage-head{
+  display:flex; align-items:center; gap:16px; padding:20px 22px; cursor:pointer; user-select:none;
+}
+.stage-num{
+  font-family:var(--mono); font-size:13px; color:var(--bg); background:var(--faint);
+  width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; font-weight:700; transition:all .2s ease;
+}
+.stage.complete .stage-num{background:var(--green); color:#08130a;}
+.stage-titles{flex:1; min-width:0;}
+.stage-titles h3{font-size:17px; font-weight:600;}
+.stage-titles .stage-sub{font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:2px;}
+.stage-time{font-family:var(--mono); font-size:12px; color:var(--amber); white-space:nowrap;}
+.stage-check{
+  width:22px;height:22px; border-radius:6px; border:1px solid var(--line); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s ease;
+}
+.stage-check:hover{border-color:var(--green);}
+.stage.complete .stage-check{background:var(--green); border-color:var(--green); color:#08130a;}
+.chevron{transition:transform .25s ease; color:var(--muted); flex-shrink:0;}
+.stage.open .chevron{transform:rotate(90deg);}
+.stage-body{max-height:0; overflow:hidden; transition:max-height .35s ease;}
+.stage-body-inner{padding:0 22px 24px;}
+
+.tabs{display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:18px; overflow-x:auto;}
+.tab{
+  font-family:var(--mono); font-size:12.5px; padding:8px 14px; cursor:pointer; color:var(--muted);
+  border-bottom:2px solid transparent; white-space:nowrap; background:none; border-top:none; border-left:none; border-right:none;
+}
+.tab.active{color:var(--blue); border-bottom-color:var(--blue);}
+.tabpanel{display:none;}
+.tabpanel.active{display:block; animation:fadein .25s ease;}
+@keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media (max-width:640px){.grid2{grid-template-columns:1fr;}}
+ul.clean{list-style:none;}
+ul.clean li{position:relative; padding-left:20px; margin-bottom:8px; font-size:14.5px; color:var(--text);}
+ul.clean li::before{content:"›"; position:absolute; left:0; color:var(--blue); font-weight:700;}
+.card-mini{background:var(--bg-inset); border:1px solid var(--line); border-radius:8px; padding:14px 16px;}
+.card-mini h4{font-size:13px; margin-bottom:8px; color:var(--muted); font-family:var(--mono); text-transform:uppercase; letter-spacing:.5px;}
+
+.tool-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+.tool-table th{
+  text-align:left; font-family:var(--mono); font-size:11.5px; color:var(--muted); text-transform:uppercase;
+  padding:8px 10px; border-bottom:1px solid var(--line); letter-spacing:.5px;
+}
+.tool-table td{padding:10px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+.tool-table tr:last-child td{border-bottom:none;}
+.tool-name{font-weight:600; color:var(--blue);}
+.badge{font-family:var(--mono); font-size:10.5px; padding:2px 7px; border-radius:5px; background:rgba(63,185,80,.15); color:var(--green); margin-left:6px;}
+.badge.alt{background:rgba(139,148,158,.15); color:var(--muted);}
+
+.prompt-box{
+  background:var(--bg-inset); border:1px solid var(--line); border-left:3px solid var(--purple);
+  border-radius:6px; padding:14px 16px; font-family:var(--mono); font-size:13px; color:var(--text);
+  position:relative; margin-bottom:10px; white-space:pre-wrap;
+}
+.copy-btn{
+  position:absolute; top:8px; right:8px; font-family:var(--sans); font-size:11px;
+  background:var(--bg-raised); border:1px solid var(--line); color:var(--muted);
+  padding:4px 8px; border-radius:5px; cursor:pointer;
+}
+.copy-btn:hover{color:var(--blue); border-color:var(--blue);}
+
+.mistake{border-left:3px solid var(--red); background:rgba(248,81,73,.06);}
+.mistake-inner{padding:12px 14px; font-size:14px;}
+.mistake-inner b{color:var(--red);}
+
+.notes-area{
+  width:100%; min-height:70px; background:var(--bg-inset); border:1px solid var(--line);
+  border-radius:8px; color:var(--text); font-family:var(--sans); font-size:13.5px; padding:10px 12px;
+  resize:vertical;
+}
+.notes-area:focus{outline:none; border-color:var(--blue);}
+.bookmark-btn{
+  display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); background:none;
+  border:none; cursor:pointer; margin-top:8px;
+}
+.bookmark-btn.active{color:var(--amber);}
+
+/* ===== diagram ===== */
+.pipeline-diagram{width:100%; overflow-x:auto; padding:8px 0 16px;}
+.pipeline-diagram svg{display:block; min-width:640px;}
+
+/* ===== comparison ===== */
+.compare-toggle{display:flex; gap:8px; margin-bottom:16px;}
+.compare-toggle button{
+  font-family:var(--mono); font-size:12.5px; padding:7px 14px; border-radius:7px;
+  border:1px solid var(--line); background:var(--bg-raised); color:var(--muted); cursor:pointer;
+}
+.compare-toggle button.active{border-color:var(--blue); color:var(--blue);}
+
+/* ===== final sections ===== */
+.stack-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px;}
+.stack-card{background:var(--bg-raised); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.stack-card .role{font-family:var(--mono); font-size:11px; color:var(--amber); text-transform:uppercase; letter-spacing:.5px;}
+.stack-card h4{margin:6px 0 4px; font-size:15.5px;}
+.stack-card p{font-size:12.5px; color:var(--muted);}
+
+.chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+.chip{font-family:var(--mono); font-size:12.5px; padding:6px 12px; border-radius:20px; background:var(--bg-inset); border:1px solid var(--line); color:var(--text);}
+
+.res-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px;}
+.res-card{background:var(--bg-raised); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.res-card a{display:block; font-weight:600; margin-bottom:4px;}
+.res-card span{font-size:12.5px; color:var(--muted);}
+
+footer{
+  margin-top:80px; padding:40px 32px; border-top:1px solid var(--line); text-align:center;
+  color:var(--faint); font-family:var(--mono); font-size:12px;
+}
+
+@media print{
+  .rail, .topbar, .btn, .tabs, .compare-toggle, .bookmark-btn, .copy-btn{display:none !important;}
+  body{padding-left:0; background:#fff; color:#000;}
+  .stage-body{max-height:none !important;}
+  .stage, .tree, .card-mini, .stack-card, .res-card{border:1px solid #ccc; break-inside:avoid;}
+  section{max-width:100%;}
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<nav class="rail" id="rail" aria-label="Stage navigator"></nav>
+
+<div class="topbar">
+  <div class="brand"><span class="dotpulse"></span> AI WORKFLOW ARCHITECT</div>
+  <div class="topbar-actions">
+    <button class="btn" id="themeToggle" title="Toggle theme">◐ Theme</button>
+    <button class="btn" id="printBtn" title="Print / Save as PDF">⎙ Print</button>
+    <button class="btn primary" id="resetBtn" title="Reset progress">↺ Reset</button>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="hero-eyebrow">workflow://software-development/full-stack/saas-launch</div>
+  <h1>Idea → Production.<br>Ship a <span class="accent">React/Next.js + Node</span> SaaS with an AI co-pilot at every stage.</h1>
+  <p class="lede">A complete, end-to-end build pipeline for solo founders and small teams taking a SaaS product from a raw idea to a paying-customer launch — with the exact AI tools, prompts, and tradeoffs for each stage.</p>
+  <div class="hero-meta">
+    <span class="pill">6 stages</span>
+    <span class="pill">~7–10 weeks solo pace</span>
+    <span class="pill">Stack: Next.js · Node · Postgres</span>
+    <span class="pill">Local storage progress tracking</span>
+  </div>
+  <div class="hero-cmd">
+    <span class="prompt">founder@saas:~$</span> ./init-workflow --track idea-to-launch --stack next+node<span class="cursor"></span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0 / 6 stages complete</div>
+  </div>
+</header>
+
+<section id="diagram-section">
+  <div class="section-head">
+    <div class="tag">Overview</div>
+    <h2>The pipeline, end to end</h2>
+    <p>Every stage in the build, visualized as a pipeline. Click any node to jump straight to it.</p>
+  </div>
+  <div class="pipeline-diagram">
+    <svg viewBox="0 0 1000 160" xmlns="http://www.w3.org/2000/svg" id="pipelineSvg">
+      <!-- connecting line -->
+      <line x1="70" y1="80" x2="930" y2="80" stroke="#2A3140" stroke-width="3" stroke-dasharray="2 6"/>
+      <!-- nodes injected by JS -->
+    </svg>
+  </div>
+</section>
+
+<section id="tree-section">
+  <div class="section-head">
+    <div class="tag">Decision Support</div>
+    <h2>Which path fits your situation?</h2>
+    <p>Answer two quick questions to get a tailored recommendation before you start Stage 1.</p>
+  </div>
+  <div class="tree">
+    <div class="tree-q"><span class="qnum">Q1</span> Do you already have a validated problem, or are you starting from a raw idea?</div>
+    <div class="tree-opts" id="q1opts">
+      <div class="tree-opt" data-q="1" data-v="raw">Raw idea, unvalidated</div>
+      <div class="tree-opt" data-q="1" data-v="validated">Validated problem / waitlist exists</div>
+    </div>
+    <div class="tree-q" style="margin-top:16px;"><span class="qnum">Q2</span> What's your comfort level with backend infrastructure?</div>
+    <div class="tree-opts" id="q2opts">
+      <div class="tree-opt" data-q="2" data-v="low">Prefer managed/serverless (low ops)</div>
+      <div class="tree-opt" data-q="2" data-v="high">Comfortable owning infra (Docker, VPS)</div>
+    </div>
+    <div class="tree-result" id="treeResult"></div>
+  </div>
+</section>
+
+<section id="stages-section">
+  <div class="section-head">
+    <div class="tag">The Workflow</div>
+    <h2>Six stages, planning to launch</h2>
+    <p>Expand each stage for objectives, tasks, tool picks, prompts, pitfalls, and time estimates. Check the box when a stage is done — your progress saves automatically.</p>
+  </div>
+  <div id="stagesContainer"></div>
+</section>
+
+<section id="summary-section">
+  <div class="section-head">
+    <div class="tag">Wrap-up</div>
+    <h2>Workflow summary</h2>
+  </div>
+  <div class="grid2">
+    <div class="card-mini">
+      <h4>What you'll have shipped</h4>
+      <ul class="clean">
+        <li>A validated SaaS idea with real user signal, not a guess</li>
+        <li>A Next.js + Node application with auth, billing, and a working core feature</li>
+        <li>A tested, monitored production deployment</li>
+        <li>Your first cohort of real users and a feedback loop back into the roadmap</li>
+      </ul>
+    </div>
+    <div class="card-mini">
+      <h4>Realistic timeline (solo founder, part-time)</h4>
+      <ul class="clean">
+        <li>Planning & validation — 1–2 weeks</li>
+        <li>Design & architecture — 1 week</li>
+        <li>Backend build — 1.5–2 weeks</li>
+        <li>Frontend build — 1.5–2 weeks</li>
+        <li>Testing & QA — 3–5 days</li>
+        <li>Launch — 3–5 days, then ongoing</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="stack-section">
+  <div class="section-head">
+    <div class="tag">Recommended AI Stack</div>
+    <h2>Your default toolbelt for this build</h2>
+    <p>The tools worth paying for across the whole project — not per stage, but for the duration.</p>
+  </div>
+  <div class="stack-grid">
+    <div class="stack-card"><div class="role">Ideation & Research</div><h4>Claude</h4><p>Long-context reasoning for market research synthesis, positioning, and PRD writing.</p></div>
+    <div class="stack-card"><div class="role">In-editor coding</div><h4>Claude Code / Cursor</h4><p>Agentic coding across your whole repo — scaffolding, refactors, and multi-file features.</p></div>
+    <div class="stack-card"><div class="role">UI generation</div><h4>v0 by Vercel</h4><p>Generates production-ready React/Tailwind components matching Next.js conventions.</p></div>
+    <div class="stack-card"><div class="role">Database & backend</div><h4>Supabase AI / Claude</h4><p>Schema design, SQL generation, and Row Level Security policy drafting.</p></div>
+    <div class="stack-card"><div class="role">QA & testing</div><h4>Claude Code</h4><p>Generates unit/integration tests and reviews diffs for regressions before merge.</p></div>
+    <div class="stack-card"><div class="role">Launch content</div><h4>Claude</h4><p>Landing page copy, launch posts, and support macros in your product's voice.</p></div>
+  </div>
+</section>
+
+<section id="resources-section">
+  <div class="section-head">
+    <div class="tag">Keep Learning</div>
+    <h2>Resources, communities & keywords</h2>
+  </div>
+  <div class="res-grid" style="margin-bottom:24px;">
+    <div class="res-card"><a href="https://nextjs.org/docs" target="_blank" rel="noopener">Next.js Documentation</a><span>App Router, server actions, deployment</span></div>
+    <div class="res-card"><a href="https://docs.claude.com" target="_blank" rel="noopener">Claude Docs</a><span>Prompting, Claude Code, agentic workflows</span></div>
+    <div class="res-card"><a href="https://supabase.com/docs" target="_blank" rel="noopener">Supabase Docs</a><span>Postgres, auth, storage, RLS</span></div>
+    <div class="res-card"><a href="https://www.indiehackers.com" target="_blank" rel="noopener">Indie Hackers</a><span>Community of solo/small-team founders</span></div>
+    <div class="res-card"><a href="https://www.ycombinator.com/library" target="_blank" rel="noopener">Y Combinator Library</a><span>Startup school essays on validation & growth</span></div>
+    <div class="res-card"><a href="https://www.producthunt.com" target="_blank" rel="noopener">Product Hunt</a><span>Launch venue and community feedback</span></div>
+  </div>
+  <h4 style="font-family:var(--mono); font-size:13px; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:.5px;">Search keywords worth bookmarking</h4>
+  <div class="chip-row">
+    <span class="chip">"next.js saas boilerplate 2026"</span>
+    <span class="chip">"claude code agentic workflow"</span>
+    <span class="chip">"stripe subscriptions node.js"</span>
+    <span class="chip">"supabase row level security patterns"</span>
+    <span class="chip">"saas pricing page examples"</span>
+    <span class="chip">"vercel edge functions vs serverless"</span>
+  </div>
+</section>
+
+<section id="future-section" style="margin-bottom:60px;">
+  <div class="section-head">
+    <div class="tag">Beyond Launch</div>
+    <h2>Future automation opportunities</h2>
+    <p>Once you're live, these are the next workflows worth automating with AI.</p>
+  </div>
+  <div class="grid2">
+    <div class="card-mini">
+      <h4>Customer-facing</h4>
+      <ul class="clean">
+        <li>AI-drafted first-response support replies from a Claude-powered helpdesk agent</li>
+        <li>Auto-generated release notes from merged pull requests</li>
+        <li>Personalized onboarding email sequences based on signup behavior</li>
+      </ul>
+    </div>
+    <div class="card-mini">
+      <h4>Internal / engineering</h4>
+      <ul class="clean">
+        <li>Claude Code reviewing every PR for regressions before a human looks at it</li>
+        <li>Automated weekly metrics summaries (churn, activation, MRR) delivered to Slack</li>
+        <li>AI-generated test cases for every new API route, wired into CI</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  AI Workflow Architect — generated for software-development / full-stack / saas-launch — react/next.js + node<br>
+  Progress and notes are stored locally in your browser only.
+</footer>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- DATA ---------------- */
+const stages = [
+  {
+    id:"plan", num:1, title:"Idea Validation & Planning", sub:"From raw idea to a written PRD", time:"1–2 weeks",
+    objectives:[
+      "Turn a vague idea into a specific problem statement with a named target user",
+      "Validate demand before writing a line of code",
+      "Produce a lightweight PRD (product requirements doc) that scopes an MVP"
+    ],
+    tasks:[
+      "Interview 5–10 people in the target audience about the problem, not the solution",
+      "Research 3–5 direct or adjacent competitors and map their pricing and gaps",
+      "Write a one-page problem statement and target user persona",
+      "Draft an MVP feature list ruthlessly cut to the smallest useful version",
+      "Set a single success metric for the MVP (e.g. 20 signups convert to 5 paying users)"
+    ],
+    tools:[
+      {name:"Claude", use:"Synthesizing interview notes into themes, drafting the PRD, and pressure-testing your problem statement.", why:"Handles long, messy interview transcripts in one pass and pushes back on weak assumptions rather than just agreeing.", alt:"ChatGPT, Notion AI"},
+      {name:"Perplexity", use:"Fast competitive and market research with sources.", why:"Cited answers make it easy to verify claims before they go in the PRD.", alt:"Google + manual research"},
+      {name:"Typeform / Tally + Claude", use:"Building a validation survey and analyzing the responses.", why:"Claude can turn raw survey exports into a clear go/no-go recommendation.", alt:"Google Forms"}
+    ],
+    prompts:[
+      "I'm validating a SaaS idea for [target user] who struggles with [problem]. Here are 8 interview notes: [paste]. Identify the 3 strongest recurring pain points and the 2 weakest, and tell me honestly if this is validated enough to build.",
+      "Draft a one-page PRD for an MVP that solves [problem] for [target user]. Include: problem statement, target user, top 5 MVP features ranked by effort vs impact, explicit non-goals, and one success metric."
+    ],
+    best:[
+      "Talk to users before you talk to Claude about features — validation data should drive the prompts, not the reverse",
+      "Write down what you will NOT build in v1; scope creep starts here",
+      "Set the success metric before you design anything"
+    ],
+    mistakes:[
+      "Asking 'would you use this?' instead of asking about current behavior and workarounds",
+      "Skipping validation because the idea 'feels obvious'",
+      "Writing a 20-page PRD for a 2-week MVP"
+    ],
+    outputs:["Problem statement + persona doc", "Competitive snapshot", "One-page PRD", "MVP feature list with priorities"],
+    efficiency:"Batch all interviews before analyzing — feeding Claude 8 transcripts at once surfaces patterns a one-at-a-time review misses."
+  },
+  {
+    id:"design", num:2, title:"Design & Architecture", sub:"System design, data model, UI wireframes", time:"~1 week",
+    objectives:[
+      "Design a data model that won't need a rewrite at 100 users",
+      "Choose the concrete stack: Next.js, Node/API layer, database, auth, hosting",
+      "Produce low-fidelity wireframes for the core user flow"
+    ],
+    tasks:[
+      "Design the database schema (entities, relationships, indexes)",
+      "Decide auth approach (managed like Supabase/Clerk vs custom)",
+      "Sketch the core user flow: signup → activation → core action → value",
+      "Define the API contract between Next.js frontend and Node backend",
+      "Pick a component library / design system starting point"
+    ],
+    tools:[
+      {name:"v0 by Vercel", use:"Generating Next.js + Tailwind UI components and full page layouts from a text description.", why:"Output matches Next.js App Router conventions directly, so it drops into the codebase with minimal rework.", alt:"Claude Artifacts for quick throwaway mockups"},
+      {name:"Claude", use:"Schema design, API contract drafting, and architecture tradeoff discussions.", why:"Good at reasoning through normalization, indexing, and tradeoffs like managed-auth vs custom-auth.", alt:"ChatGPT"},
+      {name:"Excalidraw + Claude", use:"Turning a rough hand-drawn flow description into a clean system diagram.", why:"Fast for architecture diagrams you'll reuse in documentation later.", alt:"Whimsical, Miro"}
+    ],
+    prompts:[
+      "Design a Postgres schema for a SaaS with [core entities, e.g. users, workspaces, projects, subscriptions]. Include relationships, suggested indexes, and flag any normalization tradeoffs.",
+      "I'm building with Next.js (App Router) + Node/Express API + Postgres. Propose an API contract (routes, methods, request/response shapes) for these features: [list features]."
+    ],
+    best:[
+      "Model the data around the core action a user repeats, not around your feature list",
+      "Choose managed auth (Clerk/Supabase Auth) unless you have a specific reason not to — this stage is a common time sink",
+      "Wireframe only the core flow first; secondary screens can wait"
+    ],
+    mistakes:[
+      "Over-engineering the schema for scale you don't have yet",
+      "Building custom auth 'for control' and losing a week to edge cases",
+      "Designing every screen before validating the core flow works"
+    ],
+    outputs:["Database schema (ERD)", "API contract document", "Core flow wireframes", "Confirmed stack decision"],
+    efficiency:"Ask Claude to generate the schema AND the matching TypeScript types in one pass so frontend and backend never drift out of sync."
+  },
+  {
+    id:"backend", num:3, title:"Backend Development", sub:"Node API, database, auth, billing", time:"1.5–2 weeks",
+    objectives:[
+      "Build a working API layer with authenticated, tested endpoints",
+      "Wire up the database and Row Level Security / access rules",
+      "Integrate subscription billing"
+    ],
+    tasks:[
+      "Scaffold the Node/Express (or Next.js API routes) project structure",
+      "Implement auth (session or JWT) and protect routes",
+      "Implement the core CRUD endpoints from the API contract",
+      "Integrate Stripe for subscriptions and webhooks",
+      "Add logging and basic error handling middleware"
+    ],
+    tools:[
+      {name:"Claude Code", use:"Scaffolding the backend, writing endpoint implementations, and refactoring across multiple files at once.", why:"Operates directly in your repo with full file context, so generated code matches your existing patterns instead of needing to be pasted in and adapted.", alt:"Cursor, GitHub Copilot"},
+      {name:"Claude", use:"Reviewing Stripe webhook logic and auth edge cases before they ship.", why:"Catching a broken webhook signature check before production saves a very bad debugging session later.", alt:"Manual code review"},
+      {name:"Supabase / Clerk", use:"Managed auth and, if using Supabase, managed Postgres with built-in RLS.", why:"Removes a whole category of security bugs you'd otherwise hand-roll.", alt:"Auth0, custom JWT auth"}
+    ],
+    prompts:[
+      "Here is my API contract: [paste]. Scaffold Node/Express routes implementing these endpoints with input validation, auth middleware, and consistent error responses.",
+      "Review this Stripe webhook handler for subscription events: [paste code]. Check for signature verification, idempotency, and missed edge cases like failed payments or plan downgrades."
+    ],
+    best:[
+      "Write the Stripe webhook handler defensively — assume events can arrive out of order or twice",
+      "Validate every input at the API boundary, not just in the frontend",
+      "Keep business logic out of route handlers so it's testable in isolation"
+    ],
+    mistakes:[
+      "Trusting frontend validation as the only validation",
+      "Not handling Stripe webhook retries, causing duplicate subscription records",
+      "Committing API keys or secrets directly into the repo"
+    ],
+    outputs:["Working authenticated API", "Stripe billing integration", "Database with access rules enforced", "Basic logging/error handling"],
+    efficiency:"Let Claude Code write the endpoint AND its test in the same pass — tests written after the fact tend to just confirm existing bugs."
+  },
+  {
+    id:"frontend", num:4, title:"Frontend Development", sub:"Next.js UI, core flow, responsive polish", time:"1.5–2 weeks",
+    objectives:[
+      "Build the core user flow end-to-end in the browser",
+      "Connect the UI to the real API (not mock data)",
+      "Ship a responsive, accessible interface"
+    ],
+    tasks:[
+      "Build the signup/login flow and connect it to auth",
+      "Build the core feature screens per the wireframes",
+      "Wire up data fetching and state management to the Node API",
+      "Add loading, empty, and error states for every screen",
+      "Test responsive layout at mobile, tablet, and desktop widths"
+    ],
+    tools:[
+      {name:"v0 by Vercel", use:"Generating individual component code (forms, tables, dashboards) as a starting point.", why:"Fastest path from a description to real Next.js/Tailwind markup you can then customize.", alt:"Claude for hand-tuned components"},
+      {name:"Claude Code", use:"Wiring generated components to real API calls, state, and routing across the app.", why:"Understands the whole codebase, so it connects new UI to existing data-fetching patterns correctly.", alt:"Cursor"},
+      {name:"Claude", use:"Writing empty-state and error-state copy in the product's voice.", why:"Good interface copy is a writing task, and it's easy to underinvest in it — Claude can draft options quickly.", alt:"Writing it yourself"}
+    ],
+    prompts:[
+      "Generate a Next.js (App Router) dashboard page with a sidebar, a data table with sort and pagination, and an empty state — using Tailwind and matching a dark, developer-tool aesthetic.",
+      "Here's my API response shape: [paste]. Write the data-fetching and state logic to display this in the component above, including loading and error states."
+    ],
+    best:[
+      "Build loading/empty/error states as you build the happy path, not after",
+      "Test on a real phone, not just a resized browser window",
+      "Keep one consistent state-management pattern across the app"
+    ],
+    mistakes:[
+      "Shipping only the 'happy path' UI and leaving errors as a blank white screen",
+      "Mixing multiple state-management approaches inconsistently",
+      "Polishing visuals before the core flow actually works end-to-end"
+    ],
+    outputs:["Working core user flow in the browser", "Responsive layouts", "Connected, non-mock data", "Loading/empty/error states"],
+    efficiency:"Generate 2–3 v0 variations of a screen before committing — picking the best of a few options is faster than iterating on one from scratch."
+  },
+  {
+    id:"testing", num:5, title:"Testing & QA", sub:"Automated tests, manual QA, bug triage", time:"3–5 days",
+    objectives:[
+      "Catch regressions before real users do",
+      "Verify the core flow works under realistic conditions",
+      "Triage and fix launch-blocking bugs"
+    ],
+    tasks:[
+      "Write unit tests for core business logic and API endpoints",
+      "Write an end-to-end test for the signup → core action flow",
+      "Manually QA on multiple browsers/devices",
+      "Load-test the core API endpoint at expected launch traffic",
+      "Fix and re-test all launch-blocking bugs"
+    ],
+    tools:[
+      {name:"Claude Code", use:"Generating unit and integration tests from existing code, and reviewing diffs for regressions.", why:"Can read the actual implementation and write tests against real behavior instead of guessed behavior.", alt:"Writing tests manually"},
+      {name:"Playwright + Claude", use:"Generating end-to-end test scripts for the core user flow.", why:"Claude can turn a plain-English flow description into a working Playwright script.", alt:"Cypress"},
+      {name:"k6", use:"Load-testing the API before launch.", why:"Confirms the backend holds up under expected signup-day traffic, not just single-user testing.", alt:"Artillery"}
+    ],
+    prompts:[
+      "Here is my [function/endpoint] implementation: [paste]. Write unit tests covering the happy path, edge cases, and error conditions.",
+      "Write a Playwright end-to-end test that: signs up a new user, completes [core action], and verifies [expected result]."
+    ],
+    best:[
+      "Test the unhappy paths deliberately — expired sessions, failed payments, empty states",
+      "Fix launch-blocking bugs before polishing anything cosmetic",
+      "Load-test before, not during, your actual launch"
+    ],
+    mistakes:[
+      "Only testing the flow you personally use most",
+      "Treating QA as a one-person, one-pass activity right before launch",
+      "Skipping load testing and discovering capacity limits on launch day"
+    ],
+    outputs:["Unit + integration test suite", "Passing end-to-end test for core flow", "Bug list, triaged and resolved", "Load test results"],
+    efficiency:"Ask Claude Code to review a diff specifically for regressions before merging — cheaper than finding the same bug in production."
+  },
+  {
+    id:"launch", num:6, title:"Deployment & Launch", sub:"Ship it, monitor it, get first users", time:"3–5 days, then ongoing",
+    objectives:[
+      "Deploy to production with monitoring in place",
+      "Publish launch content and drive first traffic",
+      "Establish a feedback loop from first users back into the roadmap"
+    ],
+    tasks:[
+      "Deploy frontend (Vercel) and backend/database to production",
+      "Set up error monitoring and uptime alerts",
+      "Write and publish launch content (landing page copy, launch post)",
+      "Launch on 1–2 relevant channels (Product Hunt, communities, personal network)",
+      "Set up a lightweight channel for user feedback (email, in-app widget)"
+    ],
+    tools:[
+      {name:"Vercel", use:"Deploying the Next.js frontend with zero-config CI/CD.", why:"Built specifically for Next.js, with preview deployments on every PR.", alt:"Netlify"},
+      {name:"Claude", use:"Drafting landing page copy, the launch post, and support macros in the product's voice.", why:"Can hold your positioning and tone consistently across every piece of launch content.", alt:"Writing everything manually"},
+      {name:"Sentry", use:"Error monitoring in production.", why:"Surfaces real user-facing errors immediately instead of waiting for a support email.", alt:"LogRocket"}
+    ],
+    prompts:[
+      "Write launch-day copy for a Product Hunt post and a landing page hero for a SaaS that helps [target user] do [core value]. Tone: direct, plain-spoken, no hype.",
+      "Draft 3 support email macros for common early-user questions: how to [core action], how billing works, and how to cancel."
+    ],
+    best:[
+      "Have monitoring live before you have users, not after the first bug report",
+      "Launch on one channel well rather than five channels half-heartedly",
+      "Reply to every early user personally — it's the fastest research you'll ever do"
+    ],
+    mistakes:[
+      "Launching without error monitoring and finding out about outages from users",
+      "Spreading launch effort across too many channels at once",
+      "Going quiet after launch day instead of following up with early users"
+    ],
+    outputs:["Live production deployment", "Monitoring & alerting in place", "Published launch content", "First user feedback loop established"],
+    efficiency:"Draft all launch content (landing page, PH post, support macros) in one Claude session so tone stays consistent across every surface."
+  }
+];
+
+/* ---------------- STORAGE ---------------- */
+const STORE_KEY = "awa_saas_workflow_v1";
+function loadState(){
+  try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }catch(e){ return {}; }
+}
+function saveState(state){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){}
+}
+let state = loadState();
+state.done = state.done || {};
+state.notes = state.notes || {};
+state.bookmarks = state.bookmarks || {};
+
+/* ---------------- RENDER STAGES ---------------- */
+const container = document.getElementById("stagesContainer");
+const rail = document.getElementById("rail");
+
+function renderTools(tools){
+  let rows = tools.map(t=>`
+    <tr>
+      <td class="tool-name">${t.name}</td>
+      <td>${t.use}</td>
+      <td>${t.why}</td>
+      <td><span class="badge alt">${t.alt}</span></td>
+    </tr>`).join("");
+  return `<table class="tool-table">
+    <thead><tr><th>Tool</th><th>What it's for</th><th>Why recommended</th><th>Alternative</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderStage(stage){
+  const isDone = !!state.done[stage.id];
+  const noteVal = state.notes[stage.id] || "";
+  const isBookmarked = !!state.bookmarks[stage.id];
+  const tabIds = ["overview","tools","prompts","practice","outputs"];
+  const tabLabels = {overview:"Overview", tools:"AI Tools", prompts:"Prompts", practice:"Best/Worst", outputs:"Outputs & Notes"};
+
+  const el = document.createElement("div");
+  el.className = "stage" + (isDone ? " complete" : "");
+  el.id = "stage-" + stage.id;
+  el.innerHTML = `
+    <div class="stage-head">
+      <div class="stage-num">${stage.num}</div>
+      <div class="stage-titles">
+        <h3>${stage.title}</h3>
+        <div class="stage-sub">${stage.sub}</div>
+      </div>
+      <div class="stage-time">⏱ ${stage.time}</div>
+      <div class="stage-check" title="Mark stage complete" data-id="${stage.id}">${isDone ? "✓" : ""}</div>
+      <div class="chevron">▸</div>
+    </div>
+    <div class="stage-body">
+      <div class="stage-body-inner">
+        <div class="tabs">
+          ${tabIds.map((t,i)=>`<button class="tab ${i===0?'active':''}" data-tab="${t}" data-stage="${stage.id}">${tabLabels[t]}</button>`).join("")}
+        </div>
+
+        <div class="tabpanel active" data-panel="overview" data-stage="${stage.id}">
+          <div class="grid2">
+            <div class="card-mini">
+              <h4>Objectives</h4>
+              <ul class="clean">${stage.objectives.map(o=>`<li>${o}</li>`).join("")}</ul>
+            </div>
+            <div class="card-mini">
+              <h4>Tasks</h4>
+              <ul class="clean">${stage.tasks.map(o=>`<li>${o}</li>`).join("")}</ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="tabpanel" data-panel="tools" data-stage="${stage.id}">
+          ${renderTools(stage.tools)}
+        </div>
+
+        <div class="tabpanel" data-panel="prompts" data-stage="${stage.id}">
+          ${stage.prompts.map(p=>`
+            <div class="prompt-box">${p.replace(/</g,"&lt;")}<button class="copy-btn" data-copy="${encodeURIComponent(p)}">Copy</button></div>
+          `).join("")}
+        </div>
+
+        <div class="tabpanel" data-panel="practice" data-stage="${stage.id}">
+          <div class="grid2">
+            <div class="card-mini">
+              <h4>Best practices</h4>
+              <ul class="clean">${stage.best.map(o=>`<li>${o}</li>`).join("")}</ul>
+            </div>
+            <div class="card-mini mistake">
+              <div class="mistake-inner">
+                <h4 style="color:var(--red); font-family:var(--mono); text-transform:uppercase; font-size:13px; margin-bottom:8px;">Common mistakes</h4>
+                <ul class="clean">${stage.mistakes.map(o=>`<li><b>✕</b> ${o}</li>`).join("")}</ul>
+              </div>
+            </div>
+          </div>
+          <div class="card-mini" style="margin-top:14px;">
+            <h4>Efficiency tip</h4>
+            <p style="font-size:14.5px;">${stage.efficiency}</p>
+          </div>
+        </div>
+
+        <div class="tabpanel" data-panel="outputs" data-stage="${stage.id}">
+          <div class="card-mini" style="margin-bottom:14px;">
+            <h4>Expected outputs</h4>
+            <div class="chip-row">${stage.outputs.map(o=>`<span class="chip">${o}</span>`).join("")}</div>
+          </div>
+          <div class="card-mini">
+            <h4>Your notes</h4>
+            <textarea class="notes-area" data-stage="${stage.id}" placeholder="Jot down decisions, blockers, or links for this stage...">${noteVal}</textarea>
+            <button class="bookmark-btn ${isBookmarked?'active':''}" data-stage="${stage.id}">★ ${isBookmarked ? "Bookmarked" : "Bookmark this stage"}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  return el;
+}
+
+stages.forEach(s => container.appendChild(renderStage(s)));
+
+/* rail nav */
+function renderRail(){
+  rail.innerHTML = "";
+  stages.forEach((s,i)=>{
+    const dot = document.createElement("div");
+    dot.className = "rail-dot" + (state.done[s.id] ? " done":"");
+    dot.title = s.title;
+    dot.setAttribute("role","button");
+    dot.setAttribute("tabindex","0");
+    dot.addEventListener("click", ()=>{
+      document.getElementById("stage-"+s.id).scrollIntoView({behavior:"smooth", block:"center"});
+      openStage(s.id, true);
+    });
+    rail.appendChild(dot);
+    if(i < stages.length -1){
+      const line = document.createElement("div");
+      line.className = "rail-line";
+      rail.appendChild(line);
+    }
+  });
+}
+renderRail();
+
+/* pipeline svg nodes */
+(function(){
+  const svg = document.getElementById("pipelineSvg");
+  const n = stages.length;
+  const startX = 70, endX = 930, y = 80;
+  stages.forEach((s,i)=>{
+    const x = startX + (endX-startX) * (i/(n-1));
+    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.setAttribute("style","cursor:pointer;");
+    g.innerHTML = `
+      <circle cx="${x}" cy="${y}" r="22" fill="#161B22" stroke="#58A6FF" stroke-width="2"/>
+      <text x="${x}" y="${y+5}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" fill="#58A6FF" font-weight="700">${s.num}</text>
+      <text x="${x}" y="${y+42}" text-anchor="middle" font-family="Inter, sans-serif" font-size="11.5" fill="#8B949E">${s.title.split(" ").slice(0,2).join(" ")}</text>
+    `;
+    g.addEventListener("click", ()=>{
+      document.getElementById("stage-"+s.id).scrollIntoView({behavior:"smooth", block:"center"});
+      openStage(s.id, true);
+    });
+    svg.appendChild(g);
+  });
+})();
+
+/* ---------------- INTERACTIONS ---------------- */
+function openStage(id, forceOpen){
+  const stageEl = document.getElementById("stage-"+id);
+  const body = stageEl.querySelector(".stage-body");
+  const isOpen = stageEl.classList.contains("open");
+  if(forceOpen && isOpen) return;
+  if(isOpen && !forceOpen){
+    stageEl.classList.remove("open");
+    body.style.maxHeight = null;
+  } else {
+    stageEl.classList.add("open");
+    body.style.maxHeight = body.scrollHeight + 200 + "px";
+  }
+}
+
+container.addEventListener("click", function(e){
+  const head = e.target.closest(".stage-head");
+  const check = e.target.closest(".stage-check");
+  const tab = e.target.closest(".tab");
+  const copyBtn = e.target.closest(".copy-btn");
+  const bookmarkBtn = e.target.closest(".bookmark-btn");
+
+  if(check){
+    e.stopPropagation();
+    const id = check.getAttribute("data-id");
+    state.done[id] = !state.done[id];
+    saveState(state);
+    check.closest(".stage").classList.toggle("complete", state.done[id]);
+    check.textContent = state.done[id] ? "✓" : "";
+    renderRail();
+    updateProgress();
+    return;
+  }
+  if(tab){
+    const stageId = tab.getAttribute("data-stage");
+    const tabName = tab.getAttribute("data-tab");
+    const stageEl = document.getElementById("stage-"+stageId);
+    stageEl.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t===tab));
+    stageEl.querySelectorAll(".tabpanel").forEach(p=>{
+      p.classList.toggle("active", p.getAttribute("data-panel")===tabName);
+    });
+    const body = stageEl.querySelector(".stage-body");
+    if(stageEl.classList.contains("open")){
+      body.style.maxHeight = body.scrollHeight + 200 + "px";
+    }
+    return;
+  }
+  if(copyBtn){
+    const text = decodeURIComponent(copyBtn.getAttribute("data-copy"));
+    navigator.clipboard.writeText(text).then(()=>{
+      const orig = copyBtn.textContent;
+      copyBtn.textContent = "Copied!";
+      setTimeout(()=>copyBtn.textContent = orig, 1400);
+    }).catch(()=>{});
+    return;
+  }
+  if(bookmarkBtn){
+    const id = bookmarkBtn.getAttribute("data-stage");
+    state.bookmarks[id] = !state.bookmarks[id];
+    saveState(state);
+    bookmarkBtn.classList.toggle("active", state.bookmarks[id]);
+    bookmarkBtn.textContent = (state.bookmarks[id] ? "★ Bookmarked" : "★ Bookmark this stage");
+    return;
+  }
+  if(head){
+    const id = head.parentElement.id.replace("stage-","");
+    openStage(id, false);
+  }
+});
+
+container.addEventListener("input", function(e){
+  if(e.target.classList.contains("notes-area")){
+    const id = e.target.getAttribute("data-stage");
+    state.notes[id] = e.target.value;
+    saveState(state);
+  }
+});
+
+function updateProgress(){
+  const total = stages.length;
+  const done = stages.filter(s=>state.done[s.id]).length;
+  document.getElementById("progressFill").style.width = (done/total*100) + "%";
+  document.getElementById("progressLabel").textContent = `${done} / ${total} stages complete`;
+}
+updateProgress();
+
+/* open first stage by default */
+openStage(stages[0].id, true);
+
+/* ---------------- DECISION TREE ---------------- */
+const treeAnswers = {};
+document.querySelectorAll(".tree-opt").forEach(opt=>{
+  opt.addEventListener("click", function(){
+    const q = this.getAttribute("data-q");
+    document.querySelectorAll(`.tree-opt[data-q="${q}"]`).forEach(o=>o.classList.remove("chosen"));
+    this.classList.add("chosen");
+    treeAnswers[q] = this.getAttribute("data-v");
+    if(treeAnswers["1"] && treeAnswers["2"]){
+      const resultEl = document.getElementById("treeResult");
+      let msg = "";
+      if(treeAnswers["1"]==="raw" && treeAnswers["2"]==="low"){
+        msg = "Spend real time in Stage 1 before touching code — you have both validation risk and a preference for managed infra. Use Supabase or Clerk for auth/DB and Vercel for hosting to minimize ops overhead while you're still testing the idea.";
+      } else if(treeAnswers["1"]==="raw" && treeAnswers["2"]==="high"){
+        msg = "Validate the idea in Stage 1 first regardless of your infra comfort — don't let backend skill tempt you into building before you know it's wanted. Once validated, your infra comfort means Docker + a VPS or Fly.io is a fine choice.";
+      } else if(treeAnswers["1"]==="validated" && treeAnswers["2"]==="low"){
+        msg = "You can move quickly through Stage 1 into Design & Architecture. Lean on managed services (Supabase/Clerk, Vercel) so you spend your validated momentum on the core feature, not infrastructure.";
+      } else {
+        msg = "You can move quickly through Stage 1. With infra comfort and a validated problem, you have room to own more of the stack (custom auth, self-hosted Postgres) if it gives you specific advantages — but managed services are still the faster default.";
+      }
+      resultEl.innerHTML = `<strong>Recommendation:</strong> ${msg}`;
+      resultEl.classList.add("show");
+    }
+  });
+});
+
+/* ---------------- THEME / PRINT / RESET ---------------- */
+const themeToggle = document.getElementById("themeToggle");
+themeToggle.addEventListener("click", function(){
+  const body = document.body;
+  const next = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  body.setAttribute("data-theme", next);
+  state.theme = next;
+  saveState(state);
+});
+if(state.theme){ document.body.setAttribute("data-theme", state.theme); }
+
+document.getElementById("printBtn").addEventListener("click", ()=> window.print());
+
+document.getElementById("resetBtn").addEventListener("click", function(){
+  if(confirm("Reset all progress, notes, and bookmarks? This cannot be undone.")){
+    localStorage.removeItem(STORE_KEY);
+    state = {done:{}, notes:{}, bookmarks:{}};
+    document.querySelectorAll(".notes-area").forEach(t=>t.value="");
+    document.querySelectorAll(".stage").forEach(s=>s.classList.remove("complete"));
+    document.querySelectorAll(".stage-check").forEach(c=>c.textContent="");
+    document.querySelectorAll(".bookmark-btn").forEach(b=>{b.classList.remove("active"); b.textContent="★ Bookmark this stage";});
+    renderRail();
+    updateProgress();
+  }
+});
+
+})();
+</script>
+</body>
+</html>
