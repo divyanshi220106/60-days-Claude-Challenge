@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkedIn Optimizer — Roast &amp; Rebuild</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F6F2; --paper-line:#E7E4DB; --ink:#1B1B18; --ink-soft:#5B564C;
+    --red:#B23A2E; --red-soft:#D8574A; --green:#1F6F50; --blue:#2648A6;
+    --display:'Fraunces', serif; --body:'Source Sans 3', sans-serif;
+    --mono:'JetBrains Mono', monospace; --pen:'Caveat', cursive;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--body); background:var(--paper); color:var(--ink); line-height:1.55; -webkit-font-smoothing:antialiased;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;} }
+
+  .masthead{border-bottom:2px solid var(--ink); padding:34px 32px 22px; background:var(--paper); position:sticky; top:0; z-index:40;}
+  .masthead-inner{max-width:1080px; margin:0 auto; display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap;}
+  .kicker{font-family:var(--mono); font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--red); margin-bottom:8px;}
+  h1{font-family:var(--display); font-weight:600; font-size:clamp(1.6rem,3.2vw,2.2rem); letter-spacing:-0.01em;}
+  .stamp-mini{font-family:var(--mono); font-size:0.75rem; border:2px solid var(--red); color:var(--red); padding:7px 14px; border-radius:3px; transform:rotate(-2deg); white-space:nowrap;}
+
+  main{max-width:900px; margin:0 auto; padding:52px 32px 100px;}
+  .screen{display:none;}
+  .screen.active{display:block; animation:fadeIn .4s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+  h2{font-family:var(--display); font-weight:600; font-size:clamp(1.4rem,2.4vw,1.8rem); margin-bottom:6px;}
+  .lede{color:var(--ink-soft); font-size:1rem; max-width:62ch; margin-bottom:34px;}
+
+  /* ---- toggle ---- */
+  .mode-toggle{display:inline-flex; border:2px solid var(--ink); border-radius:30px; overflow:hidden; margin-bottom:36px;}
+  .mode-toggle button{
+    font-family:var(--mono); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.03em;
+    background:transparent; border:none; padding:10px 20px; cursor:pointer; color:var(--ink);
+  }
+  .mode-toggle button.active{background:var(--ink); color:var(--paper);}
+
+  /* ---- form ---- */
+  .field{margin-bottom:22px;}
+  .field label{font-family:var(--mono); font-size:0.75rem; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-soft); display:block; margin-bottom:8px;}
+  .field .hint{font-size:0.82rem; color:var(--ink-soft); margin-top:4px;}
+  .field input, .field textarea, .field select{
+    width:100%; font-family:var(--body); font-size:0.98rem; padding:12px 14px; border:1px solid var(--paper-line);
+    border-radius:4px; background:#fff; color:var(--ink); outline:none; transition:border-color .15s ease;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{border-color:var(--red);}
+  .field textarea{resize:vertical; min-height:90px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  fieldset{border:1px solid var(--paper-line); border-radius:6px; padding:22px; margin-bottom:26px;}
+  legend{font-family:var(--display); font-weight:600; font-size:1.05rem; padding:0 8px;}
+
+  .primary-btn{
+    font-family:var(--mono); font-size:0.85rem; text-transform:uppercase; letter-spacing:0.04em;
+    background:var(--red); color:#fff; border:none; padding:15px 30px; border-radius:5px; cursor:pointer;
+    transition:background .15s ease; display:inline-flex; align-items:center; gap:10px;
+  }
+  .primary-btn:hover{background:var(--red-soft);}
+  .primary-btn:disabled{opacity:0.6; cursor:not-allowed;}
+
+  /* ---- loading ---- */
+  .loading-wrap{text-align:center; padding:90px 20px;}
+  .spinner{width:34px; height:34px; border:3px solid var(--paper-line); border-top-color:var(--red); border-radius:50%; margin:0 auto 22px; animation:spin 0.9s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-wrap p{font-family:var(--mono); font-size:0.85rem; color:var(--ink-soft);}
+  .error-box{background:#fff; border:1px solid var(--red); color:var(--red); padding:16px 18px; border-radius:4px; font-size:0.9rem; margin-top:20px;}
+
+  /* ---- tabs (results) ---- */
+  .tabbar{display:flex; gap:2px; padding:0; border-bottom:2px solid var(--ink); overflow-x:auto; margin-bottom:40px;}
+  .tab{font-family:var(--mono); font-size:0.78rem; letter-spacing:0.03em; text-transform:uppercase; background:transparent; border:none; padding:13px 16px; cursor:pointer; color:var(--ink-soft); border-bottom:3px solid transparent; white-space:nowrap;}
+  .tab.active{color:var(--ink); border-bottom-color:var(--red); font-weight:700;}
+  .panel{display:none;}
+  .panel.active{display:block; animation:fadeIn .4s ease;}
+  h3{font-family:var(--display); font-weight:600; font-size:1.15rem; margin-bottom:14px;}
+
+  .card{background:#fff; border:1px solid var(--paper-line); border-radius:4px; padding:26px; margin-bottom:24px;}
+  .card-head{display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:14px; flex-wrap:wrap;}
+  .score-badge{font-family:var(--mono); font-weight:700; font-size:1rem; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:20px;}
+  .score-low{background:rgba(178,58,46,0.1); color:var(--red);}
+  .score-mid{background:rgba(214,168,58,0.15); color:#8A6A1F;}
+  .score-high{background:rgba(31,111,80,0.12); color:var(--green);}
+  .score-new{background:rgba(38,72,166,0.1); color:var(--blue);}
+  .quote{font-family:var(--display); font-style:italic; color:var(--ink); background:var(--paper); border-left:3px solid var(--red); padding:10px 16px; margin:12px 0; font-size:0.95rem;}
+  .row{display:grid; grid-template-columns:22px 1fr; gap:10px; margin-top:12px; align-items:start;}
+  .row .ic{font-size:1rem; line-height:1.5;}
+  .row p{font-size:0.93rem; color:#3a352c;}
+  .row .label{font-family:var(--mono); font-size:0.7rem; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-soft); display:block; margin-bottom:2px;}
+
+  .overall-strip{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; background:var(--ink); color:var(--paper); padding:24px 28px; border-radius:4px; margin-top:6px;}
+  .overall-strip .big{font-family:var(--display); font-size:2.3rem; font-weight:600;}
+  .overall-strip .big span{color:var(--red-soft); font-size:1.2rem;}
+  .overall-strip .cap{font-family:var(--mono); font-size:0.72rem; letter-spacing:0.07em; text-transform:uppercase; color:rgba(247,246,242,0.6);}
+
+  .opt-grid{display:grid; gap:14px; margin-bottom:6px;}
+  .opt-card{background:#fff; border:1px solid var(--paper-line); border-radius:4px; padding:18px 20px;}
+  .opt-tag{font-family:var(--mono); font-size:0.68rem; letter-spacing:0.05em; text-transform:uppercase; color:var(--blue); margin-bottom:8px; display:block;}
+  .opt-text{font-family:var(--display); font-weight:500; font-size:1.02rem; margin-bottom:8px;}
+  .opt-when{font-size:0.85rem; color:var(--ink-soft);}
+  .copy-btn{font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.03em; background:transparent; border:1px solid var(--ink); color:var(--ink); padding:6px 12px; border-radius:3px; cursor:pointer; margin-top:10px;}
+  .copy-btn:hover{background:var(--ink); color:var(--paper);}
+  .copy-btn.copied{background:var(--green); border-color:var(--green); color:#fff;}
+
+  .redline{background:#fff; border:1px solid var(--paper-line); border-radius:4px; padding:22px 24px; margin-bottom:18px;}
+  .redline .tag{font-family:var(--mono); font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; display:block;}
+  .strike{color:var(--ink-soft); text-decoration:line-through; text-decoration-color:var(--red); text-decoration-thickness:2px; font-size:0.92rem;}
+  .insert{font-family:var(--body); font-size:0.96rem; color:var(--ink); display:block; margin-top:8px;}
+  .insert-pen{font-family:var(--pen); font-size:1.25rem; color:var(--green); display:block; margin-top:6px; line-height:1.3;}
+  .note{font-family:var(--pen); color:var(--red); font-size:1.05rem;}
+  .flag{font-family:var(--mono); font-size:0.72rem; background:rgba(178,58,46,0.08); color:var(--red); border:1px solid rgba(178,58,46,0.3); padding:8px 12px; border-radius:4px; margin-top:10px; display:block;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:12px;}
+  .chip{font-family:var(--mono); font-size:0.74rem; background:var(--paper); border:1px solid var(--paper-line); padding:5px 10px; border-radius:20px; color:var(--ink-soft);}
+  .chip.add{border-color:var(--green); color:var(--green);}
+  .chip.remove{border-color:var(--red); color:var(--red); text-decoration:line-through;}
+  .chip.pin{border-color:var(--blue); color:var(--blue); font-weight:600;}
+
+  table{width:100%; border-collapse:collapse; margin-top:8px;}
+  th{font-family:var(--mono); font-size:0.68rem; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-soft); text-align:left; padding:9px 10px; border-bottom:2px solid var(--ink);}
+  td{padding:13px 10px; border-bottom:1px solid var(--paper-line); font-size:0.92rem;}
+  td.num{font-family:var(--mono); text-align:center;}
+  td.delta{font-family:var(--mono); font-weight:700; color:var(--green); text-align:center;}
+  tr.total td{font-weight:700; border-top:2px solid var(--ink); border-bottom:none; padding-top:16px;}
+
+  .day{display:grid; grid-template-columns:60px 1fr; gap:18px; padding:22px 0; border-top:1px solid var(--paper-line);}
+  .day:last-child{border-bottom:1px solid var(--paper-line);}
+  .day-num{font-family:var(--display); font-weight:600; font-size:1.7rem; color:var(--red); line-height:1;}
+  .day h4{font-family:var(--display); font-weight:600; font-size:1.05rem; margin-bottom:8px;}
+  .day p{font-size:0.92rem; color:#3a352c; white-space:pre-line;}
+  .msg-template{background:var(--paper); border:1px dashed var(--ink-soft); border-radius:4px; padding:13px 15px; margin-top:10px; font-family:var(--mono); font-size:0.82rem; color:var(--ink); white-space:pre-line;}
+
+  .summary-card{background:var(--ink); color:var(--paper); border-radius:8px; padding:38px 36px; max-width:600px; margin:0 auto; position:relative; overflow:hidden;}
+  .summary-card h3{color:var(--paper); font-size:1.3rem; margin-bottom:16px;}
+  .summary-scores{display:flex; gap:26px; margin:20px 0; align-items:center;}
+  .summary-scores .arrow{font-size:1.5rem; color:var(--red-soft);}
+  .summary-scores .sc{text-align:center;}
+  .summary-scores .sc b{font-family:var(--display); font-size:2.2rem; display:block;}
+  .summary-scores .sc span{font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; color:rgba(247,246,242,0.55);}
+  .summary-card ol{margin:12px 0 16px 20px; font-size:0.92rem;}
+  .summary-card li{margin-bottom:6px;}
+  .summary-highlight{border-left:3px solid var(--red-soft); padding-left:14px; margin-top:14px; font-size:0.92rem; color:rgba(247,246,242,0.9);}
+
+  .start-over{font-family:var(--mono); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.03em; background:transparent; border:1px solid var(--ink); color:var(--ink); padding:9px 16px; border-radius:4px; cursor:pointer; margin-bottom:30px;}
+  .start-over:hover{background:var(--ink); color:var(--paper);}
+
+  footer{text-align:center; padding:30px; font-family:var(--mono); font-size:0.72rem; color:var(--ink-soft);}
+
+  @media (max-width:640px){
+    .field-row{grid-template-columns:1fr;}
+    .day{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div>
+      <div class="kicker">AI LinkedIn Optimizer</div>
+      <h1>Roast it. Rebuild it. Ship it.</h1>
+    </div>
+    <div class="stamp-mini">50,000 PROFILES OF EXPERIENCE</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== INTAKE SCREEN ===================== -->
+  <section class="screen active" id="intake">
+    <h2>Tell me about your profile</h2>
+    <p class="lede">Honest answers only — nothing here gets invented for you, so what you put in is what the rebuild is built on.</p>
+
+    <div class="mode-toggle">
+      <button type="button" class="active" data-mode="has">I have a LinkedIn profile</button>
+      <button type="button" data-mode="new">I don't have one yet</button>
+    </div>
+
+    <form id="intakeForm">
+
+      <div id="hasProfileFields">
+        <fieldset>
+          <legend>1. Current Headline</legend>
+          <div class="field">
+            <textarea id="headline" rows="2" placeholder="Paste exactly what's written under your name on LinkedIn"></textarea>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>2. About Section</legend>
+          <div class="field">
+            <textarea id="about" rows="5" placeholder="Paste your full About section, as-is"></textarea>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>3. Most Recent Experience Entry</legend>
+          <div class="field-row">
+            <div class="field"><label>Title</label><input id="expTitle" type="text" placeholder="e.g. Software Engineering Intern"></div>
+            <div class="field"><label>Company</label><input id="expCompany" type="text" placeholder="e.g. Acme Corp"></div>
+          </div>
+          <div class="field">
+            <label>Bullets / description</label>
+            <textarea id="expBullets" rows="4" placeholder="Paste the bullet points, or leave blank if there are none yet"></textarea>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>4. Top Skills</legend>
+          <div class="field">
+            <textarea id="skills" rows="2" placeholder="Comma-separated, e.g. React, SQL, Python, Git"></textarea>
+          </div>
+        </fieldset>
+      </div>
+
+      <div id="newProfileFields" style="display:none;">
+        <fieldset>
+          <legend>Name and current role / student status</legend>
+          <div class="field"><input id="npName" type="text" placeholder="e.g. Rahul Sharma, final-year CS student"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Top 3 skills</legend>
+          <div class="field"><input id="npSkills" type="text" placeholder="e.g. Python, Data Analysis, Public Speaking"></div>
+        </fieldset>
+        <fieldset>
+          <legend>1–2 achievements or projects you're proud of</legend>
+          <div class="field"><textarea id="npAchieve" rows="3" placeholder="Real ones only — no need to inflate them"></textarea></div>
+        </fieldset>
+        <fieldset>
+          <legend>Who do you want to attract?</legend>
+          <div class="field"><input id="npAudience" type="text" placeholder="e.g. recruiters, clients, collaborators"></div>
+        </fieldset>
+        <fieldset>
+          <legend>One sentence about what makes you different</legend>
+          <div class="field"><input id="npDiff" type="text" placeholder="What's your honest edge?"></div>
+        </fieldset>
+      </div>
+
+      <fieldset>
+        <legend>5. Target Goal</legend>
+        <div class="field">
+          <select id="goal">
+            <option value="Job or internship">Land a job or internship</option>
+            <option value="Clients or freelance work">Attract clients / freelance work</option>
+            <option value="Thought leadership">Build thought leadership</option>
+            <option value="Network growth">Grow network / visibility</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="primary-btn" id="submitBtn">Roast &amp; rebuild my profile →</button>
+    </form>
+  </section>
+
+  <!-- ===================== LOADING SCREEN ===================== -->
+  <section class="screen" id="loading">
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      <p id="loadingText">Reading your profile like a recruiter with 6 seconds to spare…</p>
+      <div id="errorBox"></div>
+    </div>
+  </section>
+
+  <!-- ===================== RESULTS SCREEN ===================== -->
+  <section class="screen" id="results">
+    <button class="start-over" id="startOverBtn">← Start over</button>
+    <div class="tabbar" id="tabbar">
+      <button class="tab active" data-tab="roast">01 — Roast</button>
+      <button class="tab" data-tab="rebuild">02 — Rebuild</button>
+      <button class="tab" data-tab="scorecard">03 — Scorecard</button>
+      <button class="tab" data-tab="plan">04 — 7-Day Plan</button>
+      <button class="tab" data-tab="summary">05 — Summary</button>
+    </div>
+
+    <div class="panel active" id="panel-roast"></div>
+    <div class="panel" id="panel-rebuild"></div>
+    <div class="panel" id="panel-scorecard"></div>
+    <div class="panel" id="panel-plan"></div>
+    <div class="panel" id="panel-summary"></div>
+  </section>
+
+</main>
+
+<footer>Nothing about your profile is stored or shared — everything runs inside this page.</footer>
+
+<script>
+  // ---------------- mode toggle ----------------
+  let mode = 'has';
+  document.querySelectorAll('.mode-toggle button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.mode-toggle button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode;
+      document.getElementById('hasProfileFields').style.display = mode === 'has' ? 'block' : 'none';
+      document.getElementById('newProfileFields').style.display = mode === 'new' ? 'block' : 'none';
+    });
+  });
+
+  function showScreen(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  document.getElementById('startOverBtn').addEventListener('click', ()=>{
+    showScreen('intake');
+  });
+
+  // ---------------- form submit ----------------
+  document.getElementById('intakeForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    document.getElementById('errorBox').innerHTML = '';
+    showScreen('loading');
+
+    let userPayload = {mode, goal: document.getElementById('goal').value};
+    if(mode === 'has'){
+      userPayload.headline = document.getElementById('headline').value.trim();
+      userPayload.about = document.getElementById('about').value.trim();
+      userPayload.expTitle = document.getElementById('expTitle').value.trim();
+      userPayload.expCompany = document.getElementById('expCompany').value.trim();
+      userPayload.expBullets = document.getElementById('expBullets').value.trim();
+      userPayload.skills = document.getElementById('skills').value.trim();
+    } else {
+      userPayload.npName = document.getElementById('npName').value.trim();
+      userPayload.npSkills = document.getElementById('npSkills').value.trim();
+      userPayload.npAchieve = document.getElementById('npAchieve').value.trim();
+      userPayload.npAudience = document.getElementById('npAudience').value.trim();
+      userPayload.npDiff = document.getElementById('npDiff').value.trim();
+    }
+
+    try{
+      const data = await callOptimizer(userPayload);
+      renderResults(data, userPayload);
+      showScreen('results');
+    }catch(err){
+      console.error(err);
+      document.getElementById('errorBox').innerHTML = '<div class="error-box">Something went wrong generating your rebuild: ' + (err.message || 'unknown error') + '. Please try again.</div>';
+    }
+  });
+
+  // ---------------- API call ----------------
+  async function callOptimizer(p){
+    const hasProfile = p.mode === 'has';
+    const schema = `{
+  "overall_before": number|null,
+  "overall_after": number,
+  "roast": {
+    "headline": {"score": number|null, "quote": string, "problem": string, "why": string, "cost": string},
+    "about_hook": {"score": number|null, "quote": string, "problem": string, "why": string, "cost": string},
+    "about_full": {"score": number|null, "problem": string, "why": string, "cost": string},
+    "experience": {"score": number|null, "quote": string, "problem": string, "why": string, "cost": string},
+    "skills": {"score": number|null, "problem": string, "why": string, "cost": string}
+  },
+  "rebuild": {
+    "headline_options": [{"tag": string, "text": string, "when": string}],
+    "about": {"hook": string, "story": string, "proof": string, "cta": string, "keywords": [string], "flag": string|null},
+    "experience": {"before": string, "after_bullets": [string], "flag": string|null},
+    "skills": {"add": [string], "remove": [string], "pin": [string]}
+  },
+  "scorecard": [{"section": string, "before": number|null, "after": number}],
+  "plan": [{"day": number, "title": string, "body": string, "template": string|null}],
+  "summary": {"mistakes": [string], "highlight": string}
+}`;
+
+    const inputDescription = hasProfile
+      ? `The person HAS an existing LinkedIn profile. Their real inputs:
+Headline: ${p.headline || '(left blank)'}
+About section: ${p.about || '(left blank)'}
+Most recent experience entry — Title: ${p.expTitle || '(blank)'}, Company: ${p.expCompany || '(blank)'}, Bullets: ${p.expBullets || '(no bullets provided)'}
+Top skills: ${p.skills || '(left blank)'}
+Target goal: ${p.goal}`
+      : `The person does NOT have a LinkedIn profile yet. Their real inputs:
+Name/role or student status: ${p.npName || '(blank)'}
+Top 3 skills: ${p.npSkills || '(blank)'}
+Achievements/projects: ${p.npAchieve || '(blank)'}
+Who they want to attract: ${p.npAudience || '(blank)'}
+What makes them different: ${p.npDiff || '(blank)'}
+Target goal: ${p.goal}
+Since there is no existing profile to roast, set every "score" field under "roast" to null, and every "quote" field to an empty string. Frame "problem"/"why"/"cost" as what's currently missing that a first-time profile needs, not as criticism of existing text. Set "overall_before" to null.`;
+
+    const systemPrompt = `You are a LinkedIn Optimization Expert, Personal Branding Consultant, and ex-recruiter who has reviewed 50,000+ profiles. You are honest, specific, and direct — never generic or fluffy.
+
+CRITICAL RULES:
+- Use ONLY the information given. NEVER invent achievements, roles, companies, metrics, or numbers that were not provided.
+- If information is missing (e.g. no experience bullets), do not fabricate it. Instead, in the relevant "flag" field, clearly say what's missing and give a bracketed fill-in-the-blank template (e.g. "[Add project name here]") for the person to complete themselves.
+- Scores are out of 10 per section, and "overall_before"/"overall_after" are out of 100 (roughly the average of the five section scores out of 10, scaled to 100).
+- "after" scores in the scorecard should be realistic given the rebuild quality, not automatically maxed out. If a section still relies on a placeholder/template (like empty experience bullets), cap its "after" score around 6/10 rather than 8-10/10, and explain this in the experience "flag".
+- Tailor the headline options, About rewrite, skills recommendations, and the 7-day plan specifically to the person's stated target goal (job/internship, clients, thought leadership, or network growth) — the strategy should differ meaningfully by goal.
+- The 7-day plan must have exactly 7 entries (day 1 through 7), matching this structure: Day 1 = profile edit checklist (put as a plain-text checklist in "body" using "- " bullets), Day 2 = draft a full LinkedIn post under 1300 characters in "template", Day 3 = list who to connect with in "body" and a connection message template under 300 characters in "template", Day 4 = explain the Agree+Insight+Question value comment formula in "body", Day 5 = draft a second post (lessons-learned/hot-take) in "template", Day 6 = engagement instructions in "body", Day 7 = explain what to review and what the numbers mean in "body".
+- Output ONLY valid JSON matching this exact schema, no markdown fences, no preamble, no commentary before or after:
+${schema}
+
+${inputDescription}`;
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: systemPrompt }]
+      })
+    });
+
+    if(!response.ok){
+      throw new Error("API request failed (" + response.status + ")");
+    }
+    const json = await response.json();
+    const textBlock = (json.content || []).map(b => b.text || '').join('\n');
+    const cleaned = textBlock.replace(/```json/g, '').replace(/```/g, '').trim();
+    let data;
+    try{
+      data = JSON.parse(cleaned);
+    }catch(parseErr){
+      throw new Error("couldn't parse the response — please try again");
+    }
+    return data;
+  }
+
+  // ---------------- rendering ----------------
+  function scoreClass(score){
+    if(score === null || score === undefined) return 'score-new';
+    if(score <= 4) return 'score-low';
+    if(score <= 7) return 'score-mid';
+    return 'score-high';
+  }
+  function scoreLabel(score){
+    return (score === null || score === undefined) ? 'NEW' : score + ' / 10';
+  }
+  function esc(s){
+    const d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  function renderResults(data, payload){
+    renderRoast(data);
+    renderRebuild(data);
+    renderScorecard(data);
+    renderPlan(data);
+    renderSummary(data);
+    bindTabs();
+    bindCopyButtons();
+  }
+
+  function roastCard(title, r){
+    if(!r) return '';
+    const quoteHtml = r.quote ? `<div class="quote">"${esc(r.quote)}"</div>` : '';
+    return `<div class="card">
+      <div class="card-head">
+        <div><h3>${esc(title)}</h3>${quoteHtml}</div>
+        <div class="score-badge ${scoreClass(r.score)}">${scoreLabel(r.score)}</div>
+      </div>
+      <div class="row"><span class="ic">❌</span><p><span class="label">The problem</span>${esc(r.problem)}</p></div>
+      <div class="row"><span class="ic">🧠</span><p><span class="label">Why it hurts</span>${esc(r.why)}</p></div>
+      <div class="row"><span class="ic">🔍</span><p><span class="label">Invisible cost</span>${esc(r.cost)}</p></div>
+    </div>`;
+  }
+
+  function renderRoast(data){
+    const r = data.roast || {};
+    let html = `<h2>The Roast</h2><p class="lede">Section by section — what a recruiter or client actually thinks in the seconds before they scroll past.</p>`;
+    html += roastCard('Headline', r.headline);
+    html += roastCard('About — First 2 Lines', r.about_hook);
+    html += roastCard('About — Full Section', r.about_full);
+    html += roastCard('Experience', r.experience);
+    html += roastCard('Skills & Keywords', r.skills);
+    if(data.overall_before !== null && data.overall_before !== undefined){
+      html += `<div class="overall-strip">
+        <div><div class="cap">Overall Profile Strength</div><div class="big">${data.overall_before}<span>/100</span></div></div>
+      </div>`;
+    } else {
+      html += `<div class="overall-strip">
+        <div><div class="cap">Overall Profile Strength</div><div class="big">—<span>/100 (no profile yet)</span></div></div>
+        <p style="max-width:340px; font-size:0.88rem; color:rgba(247,246,242,0.75);">Nothing to score yet — check the Rebuild tab for what to build first.</p>
+      </div>`;
+    }
+    document.getElementById('panel-roast').innerHTML = html;
+  }
+
+  function renderRebuild(data){
+    const rb = data.rebuild || {};
+    let html = `<h2>The Rebuild</h2><p class="lede">Built only from what you told me — anything missing is marked with a fill-in-the-blank flag instead of a made-up detail.</p>`;
+
+    html += `<h3 style="margin-top:8px;">Headline Options</h3><div class="opt-grid">`;
+    (rb.headline_options || []).forEach(opt=>{
+      html += `<div class="opt-card">
+        <span class="opt-tag">${esc(opt.tag)}</span>
+        <div class="opt-text">${esc(opt.text)}</div>
+        <p class="opt-when">${esc(opt.when)}</p>
+        <button class="copy-btn" data-copy="${esc(opt.text)}">Copy</button>
+      </div>`;
+    });
+    html += `</div>`;
+
+    if(rb.about){
+      html += `<h3 style="margin-top:40px;">About — Full Rewrite</h3>`;
+      html += `<div class="redline"><span class="tag">Hook</span><span class="insert">${esc(rb.about.hook)}</span></div>`;
+      html += `<div class="redline"><span class="tag">Story</span><span class="insert">${esc(rb.about.story)}</span></div>`;
+      html += `<div class="redline"><span class="tag">Proof</span><span class="insert">${esc(rb.about.proof)}</span>${rb.about.flag ? `<div class="flag">⚠ ${esc(rb.about.flag)}</div>` : ''}</div>`;
+      html += `<div class="redline"><span class="tag">CTA</span><span class="insert">${esc(rb.about.cta)}</span></div>`;
+      if(rb.about.keywords && rb.about.keywords.length){
+        html += `<div class="chips"><span class="chip">Keywords embedded:</span>` + rb.about.keywords.map(k=>`<span class="chip pin">${esc(k)}</span>`).join('') + `</div>`;
+      }
+    }
+
+    if(rb.experience){
+      html += `<h3 style="margin-top:40px;">Experience — Top Entry</h3>`;
+      html += `<div class="redline"><span class="tag">Before</span><span class="strike">${esc(rb.experience.before)}</span></div>`;
+      html += `<div class="redline"><span class="tag">After</span>` +
+        (rb.experience.after_bullets || []).map(b=>`<span class="insert">• ${esc(b)}</span>`).join('') +
+        (rb.experience.flag ? `<div class="flag">⚠ ${esc(rb.experience.flag)}</div>` : '') + `</div>`;
+    }
+
+    if(rb.skills){
+      html += `<h3 style="margin-top:40px;">Skills Recommendations</h3><div class="card">`;
+      html += `<p style="font-size:0.88rem; color:var(--ink-soft); margin-bottom:4px;">Add:</p><div class="chips">` + (rb.skills.add||[]).map(s=>`<span class="chip add">${esc(s)}</span>`).join('') + `</div>`;
+      html += `<p style="font-size:0.88rem; color:var(--ink-soft); margin:16px 0 4px;">Remove:</p><div class="chips">` + (rb.skills.remove||[]).map(s=>`<span class="chip remove">${esc(s)}</span>`).join('') + `</div>`;
+      html += `<p style="font-size:0.88rem; color:var(--ink-soft); margin:16px 0 4px;">Pin to top 3:</p><div class="chips">` + (rb.skills.pin||[]).map(s=>`<span class="chip pin">${esc(s)}</span>`).join('') + `</div>`;
+      html += `</div>`;
+    }
+
+    document.getElementById('panel-rebuild').innerHTML = html;
+  }
+
+  function renderScorecard(data){
+    let html = `<h2>Before vs After Scorecard</h2><p class="lede">Same real information, structured the way a recruiter's eye actually moves.</p>`;
+    html += `<table><thead><tr><th>Section</th><th>Before</th><th></th><th>After</th><th>Change</th></tr></thead><tbody>`;
+    (data.scorecard || []).forEach(row=>{
+      const before = (row.before === null || row.before === undefined) ? '—' : row.before + '/10';
+      const delta = (row.before === null || row.before === undefined) ? '—' : ('+' + (row.after - row.before));
+      const isTotal = /overall/i.test(row.section);
+      html += `<tr class="${isTotal ? 'total' : ''}"><td>${esc(row.section)}</td><td class="num">${before}</td><td class="num">→</td><td class="num">${row.after}${isTotal ? '/100' : '/10'}</td><td class="delta">${delta}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    document.getElementById('panel-scorecard').innerHTML = html;
+  }
+
+  function renderPlan(data){
+    let html = `<h2>7-Day Activation Plan</h2><p class="lede">Editing your profile gets you found. These seven days are what actually get you a reply.</p>`;
+    (data.plan || []).forEach(d=>{
+      html += `<div class="day">
+        <div class="day-num">${String(d.day).padStart(2,'0')}</div>
+        <div>
+          <h4>${esc(d.title)}</h4>
+          <p>${esc(d.body)}</p>
+          ${d.template ? `<div class="msg-template">${esc(d.template)}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    document.getElementById('panel-plan').innerHTML = html;
+  }
+
+  function renderSummary(data){
+    const s = data.summary || {};
+    const before = (data.overall_before === null || data.overall_before === undefined) ? '—' : data.overall_before;
+    let html = `<h2>What I Learned Today</h2><p class="lede">Screenshot this and post it — that's the point of this card.</p>
+    <div class="summary-card">
+      <span style="font-family:var(--mono); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:rgba(247,246,242,0.55);">I let AI roast my LinkedIn profile today</span>
+      <h3>Here's what changed:</h3>
+      <div class="summary-scores">
+        <div class="sc"><b>${before}</b><span>Before</span></div>
+        <div class="arrow">→</div>
+        <div class="sc"><b>${data.overall_after}</b><span>After</span></div>
+      </div>
+      <p style="font-size:0.88rem; color:rgba(247,246,242,0.6); margin-bottom:4px;">Top mistakes I was making:</p>
+      <ol>` + (s.mistakes || []).map(m=>`<li>${esc(m)}</li>`).join('') + `</ol>
+      <div class="summary-highlight">The #1 thing that made the biggest difference: <strong>${esc(s.highlight)}</strong></div>
+    </div>`;
+    document.getElementById('panel-summary').innerHTML = html;
+  }
+
+  function bindTabs(){
+    const tabs = document.querySelectorAll('#tabbar .tab');
+    const panels = document.querySelectorAll('#results .panel');
+    tabs.forEach(tab=>{
+      tab.onclick = ()=>{
+        tabs.forEach(t=>t.classList.remove('active'));
+        panels.forEach(p=>p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+        window.scrollTo({top:0, behavior:'smooth'});
+      };
+    });
+  }
+
+  function bindCopyButtons(){
+    document.querySelectorAll('.copy-btn').forEach(btn=>{
+      btn.onclick = ()=>{
+        navigator.clipboard.writeText(btn.dataset.copy).then(()=>{
+          const original = btn.textContent;
+          btn.textContent = 'Copied ✓';
+          btn.classList.add('copied');
+          setTimeout(()=>{ btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+        });
+      };
+    });
+  }
+</script>
+
+</body>
+</html>
