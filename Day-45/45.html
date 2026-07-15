@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Report — Job vs Startup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-main:#0f0f14;
+    --bg-card:#1a1a24;
+    --bg-card-alt:#1e1e2e;
+    --text-primary:#f0f0f5;
+    --text-secondary:#8888a0;
+    --accent-green:#34d399;
+    --accent-red:#f87171;
+    --accent-blue:#60a5fa;
+    --accent-gold:#fbbf24;
+    --accent-purple:#a78bfa;
+    --border-subtle:rgba(255,255,255,0.06);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-main);
+    color:var(--text-primary);
+    font-family:'Inter','Segoe UI',system-ui,sans-serif;
+    padding:32px 16px 60px;
+  }
+  .wrap{max-width:720px; margin:0 auto;}
+
+  header.banner{
+    text-align:center;
+    padding:24px 8px 20px;
+  }
+  header.banner h1{
+    font-size:28px; font-weight:800; letter-spacing:0.5px;
+  }
+  header.banner .subtitle{
+    margin-top:8px; font-size:16px; color:var(--text-secondary);
+  }
+  header.banner .date{
+    margin-top:6px; font-size:12px; color:var(--text-secondary);
+  }
+  .gradient-line{
+    height:2px; margin-top:20px; border-radius:2px;
+    background:linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-gold));
+  }
+
+  .card{
+    background:var(--bg-card);
+    border:1px solid var(--border-subtle);
+    border-radius:16px;
+    padding:28px;
+    margin-top:28px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.3);
+    transition:transform 0.2s ease;
+    border-left:4px solid transparent;
+  }
+  .card:hover{ transform:translateY(-2px); }
+
+  .section-title{
+    font-size:20px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+    margin-bottom:16px;
+  }
+  p, li{ font-size:15px; line-height:1.7; color:var(--text-primary); }
+  .label{
+    font-size:12px; font-weight:500; color:var(--text-secondary);
+    text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;
+  }
+
+  /* Section-specific accents */
+  #s1{ border-left-color:var(--accent-blue); }
+  #s1 .section-title{ color:var(--accent-blue); }
+
+  #s2{ border-left-color:var(--accent-green); }
+  #s2 .section-title{ color:var(--accent-green); }
+  .option-card{
+    background:var(--bg-card-alt);
+    border-radius:12px;
+    padding:20px;
+    margin-top:16px;
+  }
+  .option-card h3{ font-size:17px; margin-bottom:10px; }
+  .option-card .row{ margin-top:10px; }
+  .tag-green{ color:var(--accent-green); font-weight:600; }
+  .tag-red{ color:var(--accent-red); font-weight:600; }
+  .tag-gold{ color:var(--accent-gold); font-weight:600; }
+
+  #s3{ border-left-color:var(--accent-purple); }
+  #s3 .section-title{ color:var(--accent-purple); }
+  #s3 ul{ padding-left:18px; margin-top:8px; }
+  #s3 li{ margin-bottom:6px; }
+  .bias-pill{
+    display:inline-block; background:rgba(167,139,250,0.12); color:var(--accent-purple);
+    padding:3px 10px; border-radius:20px; font-size:13px; font-weight:600; margin-right:8px; margin-top:8px;
+  }
+
+  #s4{ border-left-color:var(--accent-blue); }
+  #s4 .section-title{ color:var(--accent-blue); }
+  .matrix-group{ margin-top:18px; }
+  .matrix-group h4{ font-size:14px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+  .bar-row{ display:flex; align-items:center; margin-bottom:10px; }
+  .bar-label{ width:40%; font-size:13px; color:var(--text-secondary); padding-right:10px; }
+  .bar-container{ width:60%; height:28px; background:rgba(255,255,255,0.05); border-radius:8px; overflow:hidden; position:relative; }
+  .bar-fill{
+    height:100%; border-radius:8px; display:flex; align-items:center; justify-content:flex-end; padding-right:8px;
+    color:white; font-weight:700; font-size:13px;
+    width:0%;
+    animation:growBar 0.8s ease-out forwards;
+  }
+  .bar-fill.a{ background:linear-gradient(90deg,#60a5fa,#3b82f6); }
+  .bar-fill.b{ background:linear-gradient(90deg,#34d399,#10b981); }
+  @keyframes growBar{ from{ width:0%; } to{ width:var(--target-width); } }
+  .total-row{
+    display:flex; justify-content:space-between; align-items:center;
+    background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 16px; margin-top:16px;
+    font-weight:700; font-size:16px;
+  }
+  .total-row.winner{ background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.3); }
+
+  #s5{ border-left-color:var(--accent-red); }
+  #s5 .section-title{ color:var(--accent-red); }
+  .premortem-block{ margin-top:16px; }
+  .premortem-block h4{ font-size:15px; margin-bottom:8px; color:var(--text-primary); }
+  .premortem-block ul{ padding-left:18px; }
+  .premortem-block li{ margin-bottom:5px; }
+
+  #s6{ border-left-color:var(--accent-green); }
+  #s6 .section-title{ color:var(--accent-green); }
+  .day-row{ display:flex; margin-top:10px; font-size:14px; }
+  .day-row .day-label{ width:110px; flex-shrink:0; color:var(--accent-green); font-weight:600; }
+
+  #s7{
+    border-left-color:var(--accent-gold);
+    background:var(--bg-card-alt);
+    padding:32px;
+    box-shadow:0 0 20px rgba(251,191,36,0.15), 0 4px 24px rgba(0,0,0,0.3);
+  }
+  #s7 .section-title{ color:var(--accent-gold); }
+  #s7 .winner-name{ font-size:30px; font-weight:800; color:var(--accent-gold); margin-bottom:12px; }
+  #s7 .hard-truth{ font-style:italic; color:var(--text-secondary); margin-top:16px; }
+
+  #s8{ border-left-color:var(--accent-gold); }
+  #s8 .section-title{ color:var(--accent-gold); }
+  .mini-cards{ display:flex; gap:16px; flex-wrap:wrap; margin-top:16px; }
+  .mini-card{
+    flex:1 1 200px;
+    background:var(--bg-card-alt);
+    border-radius:12px;
+    padding:16px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    min-height:180px;
+  }
+  .mini-card .mini-title{ font-size:12px; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.5px; margin-bottom:10px; }
+  .mini-card .mini-body{ font-size:14px; flex-grow:1; }
+  .mini-card .watermark{ font-size:10px; color:var(--text-secondary); margin-top:10px; opacity:0.7; }
+  .mini-score-row{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+  .mini-score-row .score{ font-weight:700; }
+
+  footer{
+    text-align:center; margin-top:40px; font-size:12px; color:var(--text-secondary);
+  }
+
+  @media (max-width:600px){
+    .card{ padding:20px; }
+    .bar-row{ flex-direction:column; align-items:flex-start; }
+    .bar-label, .bar-container{ width:100%; }
+    .bar-container{ margin-top:4px; }
+    header.banner h1{ font-size:24px; }
+    #s7 .winner-name{ font-size:26px; }
+    .mini-cards{ flex-direction:column; }
+    body, p, li{ font-size:14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="banner">
+    <h1>DECISION REPORT</h1>
+    <div class="subtitle">Stay at current job vs. join the startup</div>
+    <div class="date">Generated July 15, 2026</div>
+    <div class="gradient-line"></div>
+  </header>
+
+  <!-- SECTION 1 -->
+  <section class="card" id="s1">
+    <div class="section-title">The Real Decision</div>
+    <p>Stay in a stable ₹8L role with low stress, or take an ₹11L startup offer with faster growth but funding secured for only 12 months.</p>
+    <p>The real trade-off isn't money — it's certainty vs. momentum, and it lands on someone with family responsibilities.</p>
+    <p>It's hard because your gut wants the risk, but the downside (job-market gap if it fails) hits people who depend on you, not just you.</p>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="card" id="s2">
+    <div class="section-title">The Case For Each Option</div>
+
+    <div class="option-card">
+      <h3>Option A — Stay at Current Job</h3>
+      <div class="row"><span class="label">Strongest case</span><p>Predictable income, low stress, no resume gap risk — you can plan your life 12 months out with confidence.</p></div>
+      <div class="row"><span class="label">Hidden upside</span><p>Stability now buys you room to build savings or skills on the side without pressure — leverage for a better move later.</p></div>
+      <div class="row"><span class="label">Biggest weakness</span><p class="tag-red">Slower growth — you may plateau while the market moves around you.</p></div>
+      <div class="row"><span class="label">Best if you value</span><p class="tag-gold">Security and predictability for your family right now.</p></div>
+    </div>
+
+    <div class="option-card">
+      <h3>Option B — Join the Startup</h3>
+      <div class="row"><span class="label">Strongest case</span><p>Higher pay, steeper learning curve, and the kind of experience that compounds fast in a career.</p></div>
+      <div class="row"><span class="label">Hidden upside</span><p>Even if it fails in 12 months, you'll have rare, high-density experience that's hard to get elsewhere.</p></div>
+      <div class="row"><span class="label">Biggest weakness</span><p class="tag-red">Funding is only confirmed for 12 months — real risk of unemployment with a visible gap.</p></div>
+      <div class="row"><span class="label">Best if you value</span><p class="tag-gold">Growth speed over short-term certainty.</p></div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="card" id="s3">
+    <div class="section-title">Assumption Buster</div>
+    <div class="label" style="margin-top:4px;">Assumptions you may be making</div>
+    <ul>
+      <li>That a "job market gap" would be as damaging as it feels right now.</li>
+      <li>That the startup's 12-month funding is the only real risk — the current job's stagnation risk is invisible but real too.</li>
+      <li>That this is a permanent choice rather than a 12-month bet you can re-evaluate.</li>
+    </ul>
+    <div class="label" style="margin-top:16px;">Biases at play</div>
+    <div>
+      <span class="bias-pill">Loss Aversion</span>
+      <span class="bias-pill">Status Quo Bias</span>
+    </div>
+    <p style="margin-top:10px;">Loss aversion is making the risk of the startup feel bigger than the risk of staying stuck. Status quo bias is making "no change" feel like "no risk" — it isn't.</p>
+    <div class="label" style="margin-top:16px;">What you're definitely ignoring</div>
+    <p>You haven't mentioned checking if you could negotiate a partial safety net — severance clause, notice period, or a trial arrangement with the startup before fully committing.</p>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section class="card" id="s4">
+    <div class="section-title">Decision Matrix</div>
+
+    <div class="matrix-group">
+      <h4>Option A — Stay at Current Job</h4>
+      <div class="bar-row"><div class="bar-label">Life/Career Upside</div><div class="bar-container"><div class="bar-fill a" style="--target-width:50%; animation-delay:0.1s;">5</div></div></div>
+      <div class="bar-row"><div class="bar-label">Financial Safety</div><div class="bar-container"><div class="bar-fill a" style="--target-width:90%; animation-delay:0.2s;">9</div></div></div>
+      <div class="bar-row"><div class="bar-label">Growth & Learning</div><div class="bar-container"><div class="bar-fill a" style="--target-width:40%; animation-delay:0.3s;">4</div></div></div>
+      <div class="bar-row"><div class="bar-label">Stress Level</div><div class="bar-container"><div class="bar-fill a" style="--target-width:80%; animation-delay:0.4s;">8</div></div></div>
+      <div class="bar-row"><div class="bar-label">Reversibility</div><div class="bar-container"><div class="bar-fill a" style="--target-width:90%; animation-delay:0.5s;">9</div></div></div>
+      <div class="bar-row"><div class="bar-label">Long-term Alignment</div><div class="bar-container"><div class="bar-fill a" style="--target-width:50%; animation-delay:0.6s;">5</div></div></div>
+      <div class="bar-row"><div class="bar-label">Regret Risk</div><div class="bar-container"><div class="bar-fill a" style="--target-width:60%; animation-delay:0.7s;">6</div></div></div>
+      <div class="total-row winner"><span>Total (Option A)</span><span>46 / 70</span></div>
+    </div>
+
+    <div class="matrix-group">
+      <h4>Option B — Join the Startup</h4>
+      <div class="bar-row"><div class="bar-label">Life/Career Upside</div><div class="bar-container"><div class="bar-fill b" style="--target-width:80%; animation-delay:0.1s;">8</div></div></div>
+      <div class="bar-row"><div class="bar-label">Financial Safety</div><div class="bar-container"><div class="bar-fill b" style="--target-width:40%; animation-delay:0.2s;">4</div></div></div>
+      <div class="bar-row"><div class="bar-label">Growth & Learning</div><div class="bar-container"><div class="bar-fill b" style="--target-width:90%; animation-delay:0.3s;">9</div></div></div>
+      <div class="bar-row"><div class="bar-label">Stress Level</div><div class="bar-container"><div class="bar-fill b" style="--target-width:40%; animation-delay:0.4s;">4</div></div></div>
+      <div class="bar-row"><div class="bar-label">Reversibility</div><div class="bar-container"><div class="bar-fill b" style="--target-width:50%; animation-delay:0.5s;">5</div></div></div>
+      <div class="bar-row"><div class="bar-label">Long-term Alignment</div><div class="bar-container"><div class="bar-fill b" style="--target-width:70%; animation-delay:0.6s;">7</div></div></div>
+      <div class="bar-row"><div class="bar-label">Regret Risk</div><div class="bar-container"><div class="bar-fill b" style="--target-width:50%; animation-delay:0.7s;">5</div></div></div>
+      <div class="total-row"><span>Total (Option B)</span><span>42 / 70</span></div>
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section class="card" id="s5">
+    <div class="section-title">Premortem — 12 Months Later, It Failed</div>
+
+    <div class="premortem-block">
+      <h4 class="tag-blue">If you stayed at the current job...</h4>
+      <ul>
+        <li>You watched peers who took risks pull ahead in title and pay.</li>
+        <li>The comfort turned into quiet resentment toward the job.</li>
+        <li>You never actually built the "side skills" the stability was meant to enable.</li>
+      </ul>
+      <p style="margin-top:8px;"><span class="label">Early warning sign</span> Six months in, you're still saying "I'll start upskilling next month."</p>
+      <p><span class="label">Prevention action</span> Set a hard skill-building deadline with a visible output (certification, project, or portfolio piece) in the next 90 days.</p>
+    </div>
+
+    <div class="premortem-block">
+      <h4>If you joined the startup...</h4>
+      <ul>
+        <li>Funding dried up at month 10 with no extension secured.</li>
+        <li>You didn't build a financial buffer before joining.</li>
+        <li>You didn't keep your network warm, so re-entry took longer than expected.</li>
+      </ul>
+      <p style="margin-top:8px;"><span class="label">Early warning sign</span> No news of a follow-on funding round by month 6.</p>
+      <p><span class="label">Prevention action</span> Save 4-6 months of expenses before joining, and keep interviewing lightly even while employed there.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 6 -->
+  <section class="card" id="s6">
+    <div class="section-title">7-Day Test Plan</div>
+    <div class="day-row"><span class="day-label">Day 1-2</span><span>Research the startup's funding history, investors, and runway signals.</span></div>
+    <div class="day-row"><span class="day-label">Day 3-4</span><span>Ask the startup for a short paid trial or contract period before full commitment.</span></div>
+    <div class="day-row"><span class="day-label">Day 5-6</span><span>Have an honest conversation with your family about the financial risk and timeline.</span></div>
+    <div class="day-row"><span class="day-label">Day 7</span><span>Decide only if: funding signals are healthy AND you have a 4-6 month expense buffer — otherwise, stay and revisit in 6 months.</span></div>
+  </section>
+
+  <!-- SECTION 7 -->
+  <section class="card" id="s7">
+    <div class="section-title">The Verdict</div>
+    <div class="winner-name">Stay at Current Job — For Now</div>
+    <p>It wins because your financial safety net isn't in place yet, and the startup's 12-month runway makes this a bet you can't fully afford with dependents relying on you.</p>
+    <p>This could flip if you secure a 4-6 month expense buffer and confirm the startup has healthy funding signals — then the growth upside starts to outweigh the risk.</p>
+    <p class="hard-truth">The hard truth: your gut wants the startup, but your plan isn't ready for it yet — build the safety net first, then take the risk.</p>
+  </section>
+
+  <!-- SECTION 8 -->
+  <section class="card" id="s8">
+    <div class="section-title">Shareable Cards</div>
+    <div class="mini-cards">
+
+      <div class="mini-card">
+        <div class="mini-title">Matrix Summary</div>
+        <div class="mini-body">
+          <div class="mini-score-row"><span>Stay at Job</span><span class="score tag-gold">46/70</span></div>
+          <div class="mini-score-row"><span>Join Startup</span><span class="score">42/70</span></div>
+        </div>
+        <div class="watermark">Built with Claude AI</div>
+      </div>
+
+      <div class="mini-card">
+        <div class="mini-title">Verdict</div>
+        <div class="mini-body">
+          <p style="font-weight:700; color:var(--accent-gold); font-size:16px;">Stay at Current Job</p>
+          <p style="margin-top:6px;">Build the safety net first — then take the risk.</p>
+        </div>
+        <div class="watermark">Built with Claude AI</div>
+      </div>
+
+      <div class="mini-card">
+        <div class="mini-title">Share This</div>
+        <div class="mini-body">
+          <p style="font-weight:700;">Your gut isn't the problem. Your plan is.</p>
+          <p style="margin-top:6px;">Ran my job vs. startup decision through a Decision Matrix, Premortem, and 7-Day Test Plan. Turns out the risky choice just needed a safety net first.</p>
+        </div>
+        <div class="watermark">Built with Claude AI</div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>Built with Claude AI | ABTalks 60-Day Challenge</footer>
+</div>
+</body>
+</html>
