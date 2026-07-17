@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Verdict Engine — Cloud Hosting for Your Launch</title>
+<style>
+  :root{
+    --bg: #0F1419;
+    --surface: #161C24;
+    --surface-2: #1D2530;
+    --surface-3: #232C38;
+    --border: #2A3441;
+    --border-soft: #202834;
+    --text: #E8EDF2;
+    --text-dim: #8B98A8;
+    --text-faint: #5B6675;
+    --signal: #4FD1C5;
+    --signal-dim: rgba(79,209,197,0.14);
+    --warn: #F0B429;
+    --warn-dim: rgba(240,180,41,0.12);
+    --win: #34D399;
+    --win-dim: rgba(52,211,153,0.12);
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    --aws: #FF9900; --gcp: #4285F4; --azure: #0078D4; --do: #0092FF;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(ellipse 1200px 800px at 20% -10%, #16202b 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:80px;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:0 24px;}
+
+  /* ---- Header ---- */
+  header{padding:56px 0 36px;border-bottom:1px solid var(--border-soft);}
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--signal);display:flex;align-items:center;gap:8px;margin-bottom:18px;
+  }
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal);
+    box-shadow:0 0 0 3px var(--signal-dim);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+  h1{
+    font-size:clamp(32px,5vw,48px);font-weight:800;letter-spacing:-0.02em;margin:0 0 14px;
+    line-height:1.08;
+  }
+  h1 span{color:var(--text-dim);font-weight:500;}
+  .sub{font-size:16px;color:var(--text-dim);max-width:640px;margin:0 0 4px;}
+  .persona{
+    display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:7px 14px;
+    background:var(--surface);border:1px solid var(--border);border-radius:100px;
+    font-size:13px;color:var(--text-dim);
+  }
+  .persona b{color:var(--text);font-weight:600;}
+
+  section{padding:40px 0;border-bottom:1px solid var(--border-soft);}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
+  .section-title{font-size:13px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);}
+  .section-desc{font-size:13px;color:var(--text-dim);}
+
+  /* ---- Weight controls ---- */
+  .weights-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:640px){.weights-grid{grid-template-columns:1fr;}}
+  .weight-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;
+    transition:border-color .2s;
+  }
+  .weight-card:hover{border-color:#37424f;}
+  .weight-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .weight-label{font-size:14px;font-weight:600;}
+  .weight-val{font-family:var(--mono);font-size:13px;color:var(--signal);min-width:32px;text-align:right;}
+  input[type=range]{
+    -webkit-appearance:none;width:100%;height:5px;border-radius:4px;
+    background:var(--border);outline:none;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+    background:var(--signal);cursor:pointer;border:3px solid #0F1419;
+    box-shadow:0 0 0 1px var(--signal);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:17px;height:17px;border-radius:50%;background:var(--signal);cursor:pointer;
+    border:3px solid #0F1419;box-shadow:0 0 0 1px var(--signal);
+  }
+  .weight-hint{font-size:11.5px;color:var(--text-faint);margin-top:8px;}
+  .reset-btn{
+    font-family:var(--mono);font-size:12px;background:none;border:1px solid var(--border);
+    color:var(--text-dim);padding:6px 12px;border-radius:8px;cursor:pointer;transition:.15s;
+  }
+  .reset-btn:hover{border-color:var(--signal);color:var(--signal);}
+
+  /* ---- Leaderboard ---- */
+  .board{display:flex;flex-direction:column;gap:10px;}
+  .row{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;
+    display:grid;grid-template-columns:32px 130px 1fr 84px;align-items:center;gap:16px;
+    transition:border-color .25s,transform .25s;
+  }
+  @media(max-width:640px){.row{grid-template-columns:26px 90px 1fr 60px;padding:14px 14px;gap:10px;}}
+  .row.rank-1{border-color:var(--win);background:linear-gradient(90deg,var(--win-dim),var(--surface) 40%);}
+  .rank-num{font-family:var(--mono);font-size:18px;color:var(--text-faint);font-weight:700;}
+  .row.rank-1 .rank-num{color:var(--win);}
+  .prov{display:flex;flex-direction:column;gap:2px;}
+  .prov-name{font-weight:700;font-size:14.5px;}
+  .prov-tag{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);}
+  .bar-track{height:20px;background:var(--surface-3);border-radius:6px;overflow:hidden;position:relative;}
+  .bar-fill{height:100%;border-radius:6px;transition:width .5s cubic-bezier(.2,.8,.2,1);position:relative;}
+  .bar-fill.aws{background:linear-gradient(90deg,#FF9900,#e88600);}
+  .bar-fill.gcp{background:linear-gradient(90deg,#4285F4,#3367d6);}
+  .bar-fill.azure{background:linear-gradient(90deg,#0078D4,#005ba1);}
+  .bar-fill.do{background:linear-gradient(90deg,#0092FF,#0072cc);}
+  .score{font-family:var(--mono);font-size:15px;font-weight:700;text-align:right;}
+  .empty-state{
+    text-align:center;padding:40px 20px;color:var(--text-dim);font-size:14px;
+    border:1px dashed var(--border);border-radius:12px;
+  }
+
+  /* ---- Data table ---- */
+  .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:680px;}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border-soft);vertical-align:top;}
+  th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);font-weight:600;background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+  td.crit-name{font-weight:600;min-width:150px;}
+  .crit-sub{display:block;font-weight:400;font-size:11px;color:var(--text-faint);margin-top:2px;}
+  .val-cell{position:relative;}
+  .flag{
+    display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9.5px;
+    text-transform:uppercase;letter-spacing:.05em;padding:2px 6px;border-radius:5px;margin-top:6px;
+  }
+  .flag.sourced{background:var(--signal-dim);color:var(--signal);}
+  .flag.estimate{background:var(--warn-dim);color:var(--warn);}
+  .flag.derived{background:rgba(139,152,168,0.14);color:var(--text-dim);}
+  .cite{font-family:var(--mono);color:var(--signal);cursor:pointer;text-decoration:none;font-size:11px;}
+  .cite:hover{text-decoration:underline;}
+
+  /* ---- Collapsibles ---- */
+  details{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  }
+  details + details{margin-top:12px;}
+  summary{
+    padding:18px 20px;cursor:pointer;font-weight:700;font-size:14.5px;list-style:none;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{
+    content:"+";font-family:var(--mono);font-size:18px;color:var(--text-faint);
+    transition:transform .2s;
+  }
+  details[open] summary::after{transform:rotate(45deg);}
+  .details-body{padding:0 20px 22px;font-size:13.5px;color:var(--text-dim);}
+  .details-body p{margin:0 0 12px;}
+  .details-body h4{color:var(--text);font-size:13px;margin:16px 0 6px;}
+  .src-list{list-style:none;margin:0;padding:0;counter-reset:src;}
+  .src-list li{
+    counter-increment:src;padding:10px 0;border-bottom:1px solid var(--border-soft);
+    display:flex;gap:12px;font-size:13px;
+  }
+  .src-list li:last-child{border-bottom:none;}
+  .src-num{font-family:var(--mono);color:var(--signal);min-width:22px;}
+  .src-list a{color:var(--text);text-decoration:none;word-break:break-word;}
+  .src-list a:hover{color:var(--signal);}
+  .src-note{color:var(--text-faint);font-size:11.5px;display:block;margin-top:2px;}
+  .conflict-box{
+    background:var(--warn-dim);border:1px solid rgba(240,180,41,0.35);border-radius:10px;
+    padding:12px 14px;margin:10px 0;font-size:12.5px;color:#e8c56b;
+  }
+  .conflict-box b{color:var(--warn);}
+
+  footer{padding:32px 0 8px;text-align:center;color:var(--text-faint);font-size:12px;}
+  .skeleton{
+    height:52px;border-radius:12px;background:linear-gradient(90deg,var(--surface) 25%,var(--surface-2) 37%,var(--surface) 63%);
+    background-size:400% 100%;animation:shimmer 1.4s infinite;
+  }
+  @keyframes shimmer{0%{background-position:100% 0;}100%{background-position:0 0;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">The Verdict Engine · Live</div>
+    <h1>Which cloud should<br><span>actually host your launch?</span></h1>
+    <p class="sub">A weighted, sourced comparison of AWS, Google Cloud, Azure, and DigitalOcean — built for the moment you have to pick one and ship.</p>
+    <div class="persona">🚀 Built for: <b>a solo developer or startup founder</b> choosing a host for a new app launch</div>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <div class="section-title">Step 1 — Set your priorities</div>
+        <div class="section-desc" style="margin-top:6px;">Drag to weight what matters to you. The verdict below updates live.</div>
+      </div>
+      <button class="reset-btn" id="resetBtn">↺ Reset to even weights</button>
+    </div>
+    <div class="weights-grid" id="weightsGrid"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <div class="section-title">Step 2 — The verdict</div>
+        <div class="section-desc" style="margin-top:6px;">Ranked by your weighted priorities, out of 10.</div>
+      </div>
+    </div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <div class="section-title">The raw data</div>
+        <div class="section-desc" style="margin-top:6px;">Every number behind the verdict, with its source.</div>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table id="dataTable"></table>
+    </div>
+  </section>
+
+  <section style="border-bottom:none;">
+    <details id="researchPanel">
+      <summary>How this was researched <span style="font-family:var(--mono);font-size:11px;color:var(--text-faint);font-weight:400;">— methodology &amp; conflicts</span></summary>
+      <div class="details-body" id="researchBody"></div>
+    </details>
+    <details>
+      <summary>Sources <span style="font-family:var(--mono);font-size:11px;color:var(--text-faint);font-weight:400;">— 20 citations</span></summary>
+      <div class="details-body">
+        <ol class="src-list" id="srcList" style="counter-reset:none;"></ol>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    Pricing and specs reflect on-demand, single-region figures gathered mid-July 2026 and change often — verify current rates before committing spend.
+  </footer>
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   SOURCES
+--------------------------------------------------------------- */
+const SOURCES = [
+  {name:"AWS EC2 On-Demand Pricing (official)", url:"https://aws.amazon.com/ec2/pricing/on-demand/"},
+  {name:"AWS t3.medium pricing breakdown — economize.cloud", url:"https://www.economize.cloud/resources/aws/pricing/ec2/t3.medium/"},
+  {name:"GCP e2-medium pricing — economize.cloud", url:"https://www.economize.cloud/resources/gcp/pricing/compute-engine/e2-medium/"},
+  {name:"GCP e2-medium pricing (conflicting on-demand rate) — Vantage", url:"https://instances.vantage.sh/gcp/e2-medium"},
+  {name:"Azure Standard_B2s pricing — Vantage", url:"https://instances.vantage.sh/azure/vm/b2s"},
+  {name:"DigitalOcean Droplet Pricing (official)", url:"https://www.digitalocean.com/pricing/droplets"},
+  {name:"Cloud Free Tier Comparison 2026: AWS vs GCP vs Azure vs DigitalOcean", url:"https://agentdeals.dev/cloud-free-tier-comparison-2026"},
+  {name:"AWS Free Tier Complete Guide 2026", url:"https://agentdeals.dev/aws-free-tier-2026"},
+  {name:"AWS Free Tier Goes Credit-Based: comparison to Azure/GCP", url:"https://sjwiggers.com/2025/08/07/aws-free-tier-credit-based-plan-azure-gcp/"},
+  {name:"AWS Global Infrastructure — regions/AZs", url:"https://www.awsgeek.com/AWS-Regions/"},
+  {name:"Google Cloud vs Azure in 2026 — region counts", url:"https://kinsta.com/blog/google-cloud-vs-azure/"},
+  {name:"Amazon Compute Service Level Agreement (official)", url:"https://aws.amazon.com/compute/sla/"},
+  {name:"Compute Engine Service Level Agreement (official)", url:"https://cloud.google.com/compute/sla"},
+  {name:"GPU/VM Cloud SLA Guarantees 2026 — Azure disk-tier breakdown", url:"https://www.spheron.network/blog/gpu-cloud-sla-guarantees-2026/"},
+  {name:"DigitalOcean CPU Droplet SLA (official)", url:"https://www.digitalocean.com/sla/cpu-droplets"},
+  {name:"DigitalOcean Trust &amp; Compliance (official)", url:"https://www.digitalocean.com/trust"},
+  {name:"AWS ISO Certifications (official)", url:"https://aws.amazon.com/compliance/iso-certified/"},
+  {name:"Cloud compliance for regulated industries — EffectiveSoft", url:"https://www.effectivesoft.com/blog/cloud-computing-for-regulated-industries.html"},
+  {name:"Azure vs AWS vs GCP compliance survey — Meewco", url:"https://meewco.com/blog/azure-vs-aws-vs-gcp-cloud-compliance-comparison"},
+  {name:"DigitalOcean Review 2026 — DX &amp; regions — Better Stack", url:"https://betterstack.com/community/guides/web-servers/digitalocean-review/"}
+];
+
+/* ---------------------------------------------------------------
+   PROVIDERS
+--------------------------------------------------------------- */
+const PROVIDERS = [
+  {id:"aws", name:"AWS", tag:"EC2 · t3.medium", cls:"aws"},
+  {id:"gcp", name:"Google Cloud", tag:"Compute Engine · e2-medium", cls:"gcp"},
+  {id:"azure", name:"Azure", tag:"Virtual Machines · B2s", cls:"azure"},
+  {id:"do", name:"DigitalOcean", tag:"Droplets · Basic 2vCPU/4GB", cls:"do"}
+];
+
+/* ---------------------------------------------------------------
+   CRITERIA
+   direction: "min" = lower raw is better, "max" = higher raw is better
+   values are pre-normalized 0-10 scores computed from the sourced
+   raw data (formulas explained in the research panel).
+--------------------------------------------------------------- */
+const CRITERIA = [
+  {
+    id:"cost", label:"Cost", sub:"2vCPU/4GB, monthly on-demand",
+    weight:5,
+    values:{
+      aws:{raw:"$30.37/mo", score:6.5, flag:"sourced", cites:[1,2]},
+      gcp:{raw:"$24.46/mo", score:10, flag:"sourced", cites:[3], conflict:true},
+      azure:{raw:"$30.37/mo", score:6.5, flag:"sourced", cites:[5]},
+      do:{raw:"$24.00/mo", score:10, flag:"sourced", cites:[6]}
+    }
+  },
+  {
+    id:"freetier", label:"Free Tier / Credits", sub:"Signup credit, duration, permanent tier",
+    weight:5,
+    values:{
+      aws:{raw:"~$100–200 credit (reported inconsistently)", score:3.3, flag:"estimate", cites:[7,8,9]},
+      gcp:{raw:"$300 / 90 days + permanent e2-micro", score:10, flag:"sourced", cites:[7]},
+      azure:{raw:"$200 / 30 days, no permanent compute", score:6.7, flag:"sourced", cites:[7]},
+      do:{raw:"$200 / 60 days, no permanent compute", score:0.5, flag:"sourced", cites:[6,7]}
+    }
+  },
+  {
+    id:"dx", label:"Ease of Deployment & DX", sub:"Console, docs, time-to-first-deploy",
+    weight:5,
+    values:{
+      aws:{raw:"Broad but complex — 200+ services in console", score:6, flag:"estimate", cites:[18,20]},
+      gcp:{raw:"Cleaner console, still broad service catalog", score:6.5, flag:"estimate", cites:[11]},
+      azure:{raw:"Enterprise-oriented, steeper learning curve", score:5.5, flag:"estimate", cites:[11]},
+      do:{raw:"Praised as \"gold standard\" for simplicity", score:9.5, flag:"estimate", cites:[20]}
+    }
+  },
+  {
+    id:"regions", label:"Global Availability", sub:"Number of live regions",
+    weight:5,
+    values:{
+      aws:{raw:"33 regions", score:4.0, flag:"sourced", cites:[10]},
+      gcp:{raw:"40+ regions", score:5.1, flag:"sourced", cites:[11], conflict:true},
+      azure:{raw:"60+ regions (most of any provider)", score:10, flag:"sourced", cites:[11]},
+      do:{raw:"9 regions", score:0, flag:"sourced", cites:[20]}
+    }
+  },
+  {
+    id:"uptime", label:"Uptime SLA", sub:"Single-instance guarantee → annual downtime allowance",
+    weight:5,
+    values:{
+      aws:{raw:"99.5% → ~43.8 hrs/yr allowed", score:0, flag:"sourced", cites:[12]},
+      gcp:{raw:"99.95% → ~4.4 hrs/yr allowed", score:9.2, flag:"sourced", cites:[13]},
+      azure:{raw:"99.9% (Premium/Ultra disk) → ~8.8 hrs/yr", score:8.2, flag:"sourced", cites:[14]},
+      do:{raw:"99.99% (per-Droplet) → ~53 min/yr allowed", score:10, flag:"sourced", cites:[15]}
+    }
+  },
+  {
+    id:"scale", label:"Scalability & Autoscaling", sub:"Native autoscaling maturity",
+    weight:5,
+    values:{
+      aws:{raw:"Mature Auto Scaling Groups", score:9, flag:"estimate", cites:[18]},
+      gcp:{raw:"Mature Managed Instance Groups", score:9, flag:"estimate", cites:[18]},
+      azure:{raw:"Mature Virtual Machine Scale Sets", score:8.5, flag:"estimate", cites:[18]},
+      do:{raw:"No native Droplet autoscaling — needs DOKS/App Platform", score:5.5, flag:"estimate", cites:[20]}
+    }
+  },
+  {
+    id:"security", label:"Security & Compliance", sub:"Certification breadth",
+    weight:5,
+    values:{
+      aws:{raw:"140+ certifications: ISO 27001/17/18/27701, SOC 1/2/3, FedRAMP, HIPAA, PCI DSS", score:10, flag:"sourced", cites:[17,18]},
+      gcp:{raw:"ISO 27001/17/18/27701, SOC 1/2/3, PCI DSS, FedRAMP, C5, APRA", score:8, flag:"sourced", cites:[18]},
+      azure:{raw:"Broad portfolio incl. ISO 27001, SOC, HIPAA, FedRAMP; rated highest in one 2026 compliance-success survey", score:8.5, flag:"derived", cites:[18,19]},
+      do:{raw:"SOC 2, SOC 3, Global PRP; HIPAA/DORA-eligible via BAA — narrower than the Big Three", score:4, flag:"sourced", cites:[16]}
+    }
+  }
+];
+
+/* ---------------------------------------------------------------
+   RENDER: weight sliders
+--------------------------------------------------------------- */
+const weightsGrid = document.getElementById("weightsGrid");
+CRITERIA.forEach(c=>{
+  const card = document.createElement("div");
+  card.className = "weight-card";
+  card.innerHTML = `
+    <div class="weight-top">
+      <span class="weight-label">${c.label}</span>
+      <span class="weight-val" id="wv-${c.id}">${c.weight}</span>
+    </div>
+    <input type="range" min="0" max="10" step="1" value="${c.weight}" id="w-${c.id}">
+    <div class="weight-hint">${c.sub}</div>
+  `;
+  weightsGrid.appendChild(card);
+});
+
+CRITERIA.forEach(c=>{
+  document.getElementById(`w-${c.id}`).addEventListener("input", e=>{
+    c.weight = Number(e.target.value);
+    document.getElementById(`wv-${c.id}`).textContent = c.weight;
+    render();
+  });
+});
+
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  CRITERIA.forEach(c=>{
+    c.weight = 5;
+    document.getElementById(`w-${c.id}`).value = 5;
+    document.getElementById(`wv-${c.id}`).textContent = 5;
+  });
+  render();
+});
+
+/* ---------------------------------------------------------------
+   COMPUTE + RENDER: leaderboard
+--------------------------------------------------------------- */
+function computeScores(){
+  const totalWeight = CRITERIA.reduce((s,c)=>s+c.weight,0);
+  if(totalWeight === 0) return null;
+  return PROVIDERS.map(p=>{
+    let sum = 0;
+    CRITERIA.forEach(c=>{
+      sum += c.weight * c.values[p.id].score;
+    });
+    return {...p, total: sum/totalWeight};
+  }).sort((a,b)=>b.total-a.total);
+}
+
+const board = document.getElementById("board");
+function renderBoard(){
+  const ranked = computeScores();
+  if(!ranked){
+    board.innerHTML = `<div class="empty-state">Set at least one priority above to see a ranking. Right now every weight is at zero, so there's nothing to compare.</div>`;
+    return;
+  }
+  board.innerHTML = "";
+  const maxTotal = ranked[0].total || 1;
+  ranked.forEach((p,i)=>{
+    const row = document.createElement("div");
+    row.className = "row" + (i===0 ? " rank-1":"");
+    row.innerHTML = `
+      <div class="rank-num">${i+1}</div>
+      <div class="prov">
+        <span class="prov-name">${p.name}${i===0?" 🏆":""}</span>
+        <span class="prov-tag">${p.tag}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill ${p.cls}" style="width:0%"></div></div>
+      <div class="score">${p.total.toFixed(1)}</div>
+    `;
+    board.appendChild(row);
+    requestAnimationFrame(()=>{
+      row.querySelector(".bar-fill").style.width = (p.total/10*100).toFixed(1)+"%";
+    });
+  });
+}
+
+/* ---------------------------------------------------------------
+   RENDER: data table
+--------------------------------------------------------------- */
+function renderTable(){
+  const table = document.getElementById("dataTable");
+  let thead = "<thead><tr><th>Criterion</th>" + PROVIDERS.map(p=>`<th>${p.name}</th>`).join("") + "</tr></thead>";
+  let rows = CRITERIA.map(c=>{
+    let cells = PROVIDERS.map(p=>{
+      const v = c.values[p.id];
+      const cites = v.cites.map(n=>`<a class="cite" href="#src-${n}" onclick="openSources()">[${n}]</a>`).join(" ");
+      const flagLabel = v.flag === "sourced" ? "Sourced" : v.flag === "derived" ? "Derived calc" : "Estimate";
+      return `<td class="val-cell">${v.raw} ${cites}<br><span class="flag ${v.flag}">${flagLabel}</span></td>`;
+    }).join("");
+    return `<tr><td class="crit-name">${c.label}<span class="crit-sub">${c.sub}</span></td>${cells}</tr>`;
+  }).join("");
+  table.innerHTML = thead + "<tbody>" + rows + "</tbody>";
+}
+
+/* ---------------------------------------------------------------
+   RENDER: sources panel
+--------------------------------------------------------------- */
+const srcList = document.getElementById("srcList");
+srcList.innerHTML = SOURCES.map((s,i)=>`
+  <li id="src-${i+1}">
+    <span class="src-num">[${i+1}]</span>
+    <span><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a><span class="src-note">${s.url}</span></span>
+  </li>
+`).join("");
+
+window.openSources = function(){
+  const details = document.querySelectorAll("details")[1];
+  if(details) details.open = true;
+};
+
+/* ---------------------------------------------------------------
+   RENDER: research panel
+--------------------------------------------------------------- */
+document.getElementById("researchBody").innerHTML = `
+  <p>Every raw figure in the data table above was pulled from a named, linked source current as of mid-July 2026. Where a number required combining sourced facts into a single comparable score, that's labeled <span class="flag derived" style="margin:0 2px;">Derived calc</span>. Where the criterion is inherently a judgment call (developer experience, autoscaling maturity), it's labeled <span class="flag estimate" style="margin:0 2px;">Estimate</span> and grounded in cited reviews rather than a hard number.</p>
+
+  <h4>Scoring formulas</h4>
+  <p><b>Cost, Regions:</b> raw monthly price / region count, min–max normalized to 0–10 across the four providers (cheaper / more regions = higher score).</p>
+  <p><b>Free Tier:</b> derived as (credit $ ÷ trial days) + a flat bonus for a <i>permanent</i> always-free compute instance, since that matters most to a solo dev who wants a project to survive past the trial window. GCP's permanent free e2-micro is the deciding factor in its lead here.</p>
+  <p><b>Uptime SLA:</b> the sourced single-instance SLA percentage was converted into annual downtime minutes allowed (a simple arithmetic calculation, not an estimate) before scoring, because 99.5% vs 99.99% looks like a rounding error on paper but is actually the difference between ~44 hours and ~53 minutes of allowed downtime per year.</p>
+  <p><b>Security &amp; Compliance:</b> scored on breadth of named certifications/frameworks found in sourced material, since a raw count wasn't published identically by every provider.</p>
+
+  <h4>Conflicts found and how they were resolved</h4>
+  <div class="conflict-box"><b>GCP e2-medium pricing:</b> economize.cloud lists $24.46/mo, while Vantage lists $0.0553/hr (~$40.37/mo) as the pre-discount on-demand rate. The gap is likely GCP's automatic sustained-use discount being applied differently across trackers. We used the lower, discount-inclusive figure since that's what a workload running 24/7 actually pays — but flagged it as a live conflict rather than picking silently.</div>
+  <div class="conflict-box"><b>AWS free-tier structure:</b> some 2026 coverage describes AWS moving to a credit-based free-tier model (~$100–200), while other sources still describe the historical 12-month, 750-hrs/month EC2 free tier as active. We couldn't confirm which is authoritative at the moment of writing, so AWS's free-tier score is explicitly flagged as an estimate built on a midpoint assumption rather than a single confirmed figure.</div>
+  <div class="conflict-box"><b>Region counts:</b> AWS is reported anywhere from 33 to 39 regions and GCP from 24 to 49 depending on the source and date, since providers announce regions before they're generally available. We used the most recent, most-cited figure for each and note that this number moves monthly — verify on the provider's own infrastructure page before treating it as precise.</div>
+  <div class="conflict-box"><b>Azure's compliance score:</b> the only single-number comparison we found was a third-party <i>implementation-success survey</i> (89% Azure vs 85% AWS vs 78% GCP), which measures something different from a certification count. We used it as a supporting signal, not a like-for-like metric, hence the "Derived calc" flag on Azure's security score.</div>
+
+  <h4>What this tool can't tell you</h4>
+  <p>It can't tell you your own workload's egress patterns, whether your team already knows one ecosystem, or how startup credit programs (AWS Activate, Google for Startups, Microsoft for Startups) might change the free-tier math — those programs can be worth tens of thousands of dollars but have eligibility requirements this tool didn't model.</p>
+`;
+
+/* ---------------------------------------------------------------
+   INITIAL RENDER (with a brief loading state for polish)
+--------------------------------------------------------------- */
+board.innerHTML = `<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>`;
+
+function render(){
+  renderBoard();
+  renderTable();
+}
+setTimeout(render, 380);
+</script>
+</body>
+</html>
