@@ -1,0 +1,116 @@
+# Day 8 — [PROJECT NAME] — Testing, Debugging & Production Optimization 🔧
+
+**Date:** [YYYY-MM-DD]
+**Challenge:** ABTalks 60-Day Claude AI Challenge — 10-Day Blueprint
+**Milestone:** Day 8 — Testing, Debugging & Production Optimization
+
+---
+
+## 🎯 Goal for Today
+
+Full QA pass on [PROJECT NAME] — find and fix bugs, edge cases, and production risks before treating it as launch-ready. No new features today, only stability and polish.
+
+---
+
+## 🔍 Senior-Level Review Findings
+
+Reviewed as QA Engineer, Software Engineer, Security Reviewer, and Performance Engineer.
+
+| Area | Issue Found | Severity | Status |
+|---|---|---|---|
+| Bugs/broken functionality | [issue] | High/Med/Low | Fixed / Open |
+| Edge cases | [issue] | High/Med/Low | Fixed / Open |
+| Error handling | [issue] | High/Med/Low | Fixed / Open |
+| Form validation | [issue] | High/Med/Low | Fixed / Open |
+| API failure handling | [issue] | High/Med/Low | Fixed / Open |
+| Loading/empty/offline states | [issue] | High/Med/Low | Fixed / Open |
+| Responsive design | [issue] | High/Med/Low | Fixed / Open |
+| Accessibility | [issue] | High/Med/Low | Fixed / Open |
+| Performance | [issue] | High/Med/Low | Fixed / Open |
+| Duplicate/unnecessary code | [issue] | High/Med/Low | Fixed / Open |
+| Security | [issue] | High/Med/Low | Fixed / Open |
+| Console warnings/errors | [issue] | High/Med/Low | Fixed / Open |
+
+---
+
+## ✅ Fixes Implemented
+
+**Files added/changed:**
+| File | Type | Purpose |
+|---|---|---|
+| `[path/to/file1]` | Modified | [what was fixed] |
+| `[path/to/file2]` | Modified | [what was fixed] |
+| `[path/to/ErrorBoundary.jsx]` | New | [what it does] |
+
+---
+
+## 🧪 End-to-End Walkthrough
+
+Full user flow tested step by step:
+
+1. [Step 1] — ✅ Pass / ❌ Fail: [notes]
+2. [Step 2] — ✅ Pass / ❌ Fail: [notes]
+3. [Step 3] — ✅ Pass / ❌ Fail: [notes]
+4. [Step 4] — ✅ Pass / ❌ Fail: [notes]
+
+- [ ] No console errors on any page
+- [ ] All planned features work correctly
+- [ ] Tested on mobile viewport
+- [ ] Tested on desktop
+- [ ] Tested with slow/offline network (throttling)
+- [ ] Tested invalid form inputs
+
+---
+
+## 🚀 Deployment
+
+- **Hosting platform:** [Vercel / Netlify / Render]
+- **Live URL:** [link]
+- **Redeployed:** [ ] Yes, with today's fixes
+- **Live version verified:** [ ] Yes
+
+---
+
+## 🖼️ Screenshots
+
+![End-to-end walkthrough - step 1](./screenshots/day8-walkthrough-1.png)
+![End-to-end walkthrough - step 2](./screenshots/day8-walkthrough-2.png)
+
+[One-line caption per screenshot]
+
+---
+
+## 🐛 Known Issues Remaining (not blocking launch)
+
+| Issue | Priority | Plan |
+|---|---|---|
+| [issue] | Low | [when/if it'll be addressed] |
+
+*(Delete this section if none remain.)*
+
+---
+
+## 📚 Key Learnings
+
+- [Learning 1 — QA/testing]
+- [Learning 2 — security/performance]
+- [Learning 3 — what you'd do differently]
+
+---
+
+## 🔗 Links
+
+- Project repo: [link]
+- Live demo: [link]
+- ABTalks repo commit: [link]
+
+---
+
+## 📌 What Remains Before Launch
+
+- [Item 1]
+- [Item 2]
+
+## 📌 Day 9 Focus
+
+- [Next blueprint milestone]
